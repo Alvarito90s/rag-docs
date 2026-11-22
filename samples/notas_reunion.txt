@@ -1,0 +1,6 @@
+Reunión del 12 de mayo de 2025
+Asistentes: Marta Ibáñez, Jorge Salas, Lucía Pardo
+
+1. Se acordó migrar el servidor de pruebas a la versión 3.2 antes del 30 de junio.
+2. Responsable de la migración: Marta Ibáñez.
+3. La próxima revisión del presupuesto será en septiembre.

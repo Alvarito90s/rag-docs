@@ -1,0 +1,53 @@
+[project]
+name = "docuchat"
+version = "0.1.0"
+description = "Buscador semántico local (RAG) con citas a la página exacta."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = [
+    "openai>=2.0,<3",
+    "pydantic>=2.11,<3",
+    "pydantic-settings>=2.10,<3",
+    "pymupdf>=1.26,<2",
+    "python-docx>=1.1,<2",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4",
+    "pytest>=9.0",
+    "ruff>=0.17",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/docuchat"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/sample_content.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["scripts", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["pymupdf.*", "fitz.*", "docx.*", "rank_bm25.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --import-mode=importlib"
