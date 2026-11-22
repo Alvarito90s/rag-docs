@@ -12,7 +12,12 @@ dependencies = [
     "pydantic-settings>=2.10,<3",
     "pymupdf>=1.26,<2",
     "python-docx>=1.1,<2",
+    "rich>=15,<16",
+    "typer>=0.29,<1",
 ]
+
+[project.scripts]
+docuchat = "docuchat.cli:app"
 
 [dependency-groups]
 dev = [

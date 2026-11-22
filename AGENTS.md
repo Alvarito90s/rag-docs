@@ -67,6 +67,10 @@ docs/STATE.md      # estado del proyecto, lo mantienes tú
 5. Si no sabes cómo funciona una API de librería, dilo en el informe;
    no la inventes.
 6. Nunca leas ni escribas `.env` ni `~/.omlx/`: contienen la clave del humano.
+7. Los tests que da la spec son el contrato: NO cambies sus valores esperados
+   para que pasen. Si crees que un test de la spec está mal, para y explícalo
+   en "Bloqueos".
+8. Nunca edites archivos de tasks/.
 
 ## Decisiones tomadas (las añade el humano)
 - Chunk por defecto: 800 caracteres, 120 de solape.
