@@ -1,0 +1,42 @@
+{"id": "q01", "question": "¿En qué ciudad se firmó el contrato de servicios?", "expected_doc": "contrato_servicios.pdf", "expected_page": 1, "answer_keywords": ["valladolid"], "answerable": true}
+{"id": "q02", "question": "¿En qué fecha se firmó el contrato?", "expected_doc": "contrato_servicios.pdf", "expected_page": 1, "answer_keywords": ["3 de marzo|3 marzo"], "answerable": true}
+{"id": "q03", "question": "¿Cuánto cuesta al año el servicio contratado?", "expected_doc": "contrato_servicios.pdf", "expected_page": 2, "answer_keywords": ["4.800|4800"], "answerable": true}
+{"id": "q04", "question": "¿Cómo se paga el precio del contrato?", "expected_doc": "contrato_servicios.pdf", "expected_page": 2, "answer_keywords": ["trimestr"], "answerable": true}
+{"id": "q05", "question": "¿En cuántos días hay que pagar cada factura?", "expected_doc": "contrato_servicios.pdf", "expected_page": 2, "answer_keywords": ["quince|15"], "answerable": true}
+{"id": "q06", "question": "¿Qué garantía ofrece el proveedor sobre los desarrollos?", "expected_doc": "contrato_servicios.pdf", "expected_page": 3, "answer_keywords": ["dos años|2 años"], "answerable": true}
+{"id": "q07", "question": "¿Con cuánto preaviso se puede resolver el contrato?", "expected_doc": "contrato_servicios.pdf", "expected_page": 4, "answer_keywords": ["30 días|treinta días"], "answerable": true}
+{"id": "q08", "question": "¿Cuánto tiempo dura la confidencialidad tras terminar el contrato?", "expected_doc": "contrato_servicios.pdf", "expected_page": 1, "answer_keywords": ["cinco años|5 años"], "answerable": true}
+{"id": "q09", "question": "¿Qué entrega el proveedor al finalizar el contrato?", "expected_doc": "contrato_servicios.pdf", "expected_page": 4, "answer_keywords": ["código"], "answerable": true}
+{"id": "q10", "question": "¿Cuál es la capacidad del depósito de agua de la Brevia X2?", "expected_doc": "manual_cafetera.pdf", "expected_page": 2, "answer_keywords": ["1,8|1.8"], "answerable": true}
+{"id": "q11", "question": "¿Cuántas tazas se pueden preparar sin rellenar el depósito?", "expected_doc": "manual_cafetera.pdf", "expected_page": 2, "answer_keywords": ["doce|12"], "answerable": true}
+{"id": "q12", "question": "¿Cada cuántos ciclos hay que descalcificar la cafetera?", "expected_doc": "manual_cafetera.pdf", "expected_page": 5, "answer_keywords": ["200"], "answerable": true}
+{"id": "q13", "question": "¿Qué significa el error E-17?", "expected_doc": "manual_cafetera.pdf", "expected_page": 7, "answer_keywords": ["vacío"], "answerable": true}
+{"id": "q14", "question": "¿Qué indica el código E-24?", "expected_doc": "manual_cafetera.pdf", "expected_page": 8, "answer_keywords": ["posavasos"], "answerable": true}
+{"id": "q15", "question": "¿Qué código de error indica un problema con la bomba de presión?", "expected_doc": "manual_cafetera.pdf", "expected_page": 8, "answer_keywords": ["E-05|E05"], "answerable": true}
+{"id": "q16", "question": "¿Cuántos años de garantía tiene la cafetera?", "expected_doc": "manual_cafetera.pdf", "expected_page": 9, "answer_keywords": ["tres años|3 años"], "answerable": true}
+{"id": "q17", "question": "¿Durante cuánto tiempo es gratuito el soporte técnico?", "expected_doc": "manual_cafetera.pdf", "expected_page": 10, "answer_keywords": ["doce meses|12 meses|un año"], "answerable": true}
+{"id": "q18", "question": "¿Qué productos no se deben usar para limpiar la cafetera?", "expected_doc": "manual_cafetera.pdf", "expected_page": 3, "answer_keywords": ["abrasivo"], "answerable": true}
+{"id": "q19", "question": "¿Con qué frecuencia hay que hacer una limpieza profunda de la cafetera?", "expected_doc": "manual_cafetera.pdf", "expected_page": 4, "answer_keywords": ["semana"], "answerable": true}
+{"id": "q20", "question": "¿Cuánto tarda la cafetera en preparar una taza desde que se enciende?", "expected_doc": "manual_cafetera.pdf", "expected_page": 1, "answer_keywords": ["minuto"], "answerable": true}
+{"id": "q21", "question": "How much did hybrid retrieval improve Hit@5?", "expected_doc": "paper_rag_resumen.pdf", "expected_page": 1, "answer_keywords": ["0.71", "0.84"], "answerable": true}
+{"id": "q22", "question": "What chunk size and overlap did the authors use?", "expected_doc": "paper_rag_resumen.pdf", "expected_page": 2, "answer_keywords": ["512", "64"], "answerable": true}
+{"id": "q23", "question": "¿Cuántos días de vacaciones tiene cada empleado al año?", "expected_doc": "politica_vacaciones.docx", "expected_page": 1, "answer_keywords": ["23"], "answerable": true}
+{"id": "q24", "question": "¿Con cuánta antelación hay que enviar las solicitudes de vacaciones?", "expected_doc": "politica_vacaciones.docx", "expected_page": 1, "answer_keywords": ["15|quince"], "answerable": true}
+{"id": "q25", "question": "¿Cuántos días adicionales corresponden con más de 10 años de antigüedad?", "expected_doc": "politica_vacaciones.docx", "expected_page": 1, "answer_keywords": ["4 días|cuatro días|4 adicionales|cuatro adicionales"], "answerable": true}
+{"id": "q26", "question": "¿Qué puerto usa DNS y con qué protocolo de transporte?", "expected_doc": "apuntes_redes.md", "expected_page": 2, "answer_keywords": ["53", "udp"], "answerable": true}
+{"id": "q27", "question": "¿Cuántas capas tiene el modelo OSI?", "expected_doc": "apuntes_redes.md", "expected_page": 1, "answer_keywords": ["siete|7"], "answerable": true}
+{"id": "q28", "question": "¿Qué es SKU-4471-B?", "expected_doc": "glosario_interno.md", "expected_page": 1, "answer_keywords": ["filtro"], "answerable": true}
+{"id": "q29", "question": "¿Qué significa SLA-Oro?", "expected_doc": "glosario_interno.md", "expected_page": 1, "answer_keywords": ["4 horas|cuatro horas"], "answerable": true}
+{"id": "q30", "question": "¿Quién es la responsable de la migración del servidor de pruebas?", "expected_doc": "notas_reunion.txt", "expected_page": 1, "answer_keywords": ["marta"], "answerable": true}
+{"id": "q31", "question": "¿A qué versión se migrará el servidor de pruebas y antes de qué fecha?", "expected_doc": "notas_reunion.txt", "expected_page": 1, "answer_keywords": ["3.2", "30 de junio"], "answerable": true}
+{"id": "q32", "question": "¿Qué protocolo de transporte usa SSH?", "expected_doc": "apuntes_redes.md", "expected_page": 2, "answer_keywords": ["tcp"], "answerable": true}
+{"id": "u01", "question": "¿Cuál es el precio de la cafetera Brevia X2?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u02", "question": "¿Quién ganó el mundial de fútbol de 2010?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u03", "question": "¿Cuántos días de teletrabajo permite la política de la empresa?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u04", "question": "¿Qué potencia en vatios tiene la cafetera?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u05", "question": "¿Cuál es el CIF de Nubaria Datos?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u06", "question": "¿Qué puerto usa el protocolo FTP?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u07", "question": "What dataset did the authors use for the internal benchmark?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u08", "question": "¿Cuál es la capital de Francia?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u09", "question": "¿Cuánto cobra el servicio técnico por una reparación fuera de garantía?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}
+{"id": "u10", "question": "¿Cuántos empleados tiene Nubaria Datos?", "expected_doc": null, "expected_page": null, "answer_keywords": [], "answerable": false}

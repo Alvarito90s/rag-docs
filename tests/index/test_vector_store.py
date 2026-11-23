@@ -236,3 +236,18 @@ def test_query_empty_store(tmp_path: Path) -> None:
     """16. Store vacío → query devuelve [] sin llamar a Chroma."""
     vs = VectorStore(tmp_path, "test", "m1")
     assert vs.query([1.0, 0.0, 0.0], 5) == []
+
+
+def test_relative_path_follows_cwd(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ruta relativa se resuelve con el cwd de cada momento, no con el
+    de un cliente cacheado."""
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    chunk = make_chunk("a.md", 1, 0, "hola")
+    monkeypatch.chdir(tmp_path / "a")
+    first = VectorStore(Path("data/chroma"), "chunks", "m")
+    first.add([chunk], [[1.0, 0.0, 0.0]])
+    monkeypatch.chdir(tmp_path / "b")
+    second = VectorStore(Path("data/chroma"), "chunks", "m")
+    assert second.count() == 0
+    assert (tmp_path / "b" / "data" / "chroma" / "chroma.sqlite3").exists()

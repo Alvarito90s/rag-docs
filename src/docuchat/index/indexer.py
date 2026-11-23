@@ -165,7 +165,7 @@ def build_indexer(settings: Settings, embedder: Embedder | None = None) -> Index
 def reset_index(settings: Settings) -> None:
     """Borra la colección de Chroma y vacía el registro."""
     client = chromadb.PersistentClient(
-        path=str(settings.chroma_dir),
+        path=str(settings.chroma_dir.resolve()),
         settings=ChromaSettings(anonymized_telemetry=False),
     )
     collection_names = {c.name for c in client.list_collections()}

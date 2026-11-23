@@ -28,7 +28,7 @@ class VectorStore:
     ) -> None:
         path.mkdir(parents=True, exist_ok=True)
         self._client = chromadb.PersistentClient(
-            path=str(path),
+            path=str(path.resolve()),
             settings=ChromaSettings(anonymized_telemetry=False),
         )
         self._model = embedding_model
