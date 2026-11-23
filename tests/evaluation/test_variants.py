@@ -169,7 +169,7 @@ def test_run_variant(base: Settings, tmp_path: Path, preguntas_v1):
     )
     assert result.variant == "top3"
     assert [r.variant for r in result.retrieval] == ["top3"]
-    assert result.retrieval[0].hit_at_1 == pytest.approx(27 / 32)
+    assert result.retrieval[0].hit_at_1 == pytest.approx(28 / 32)
     assert result.generations == []
     assert (tmp_path / "ev" / "top3" / "cs800").is_dir()
 
@@ -387,8 +387,8 @@ def test_main_dos_variantes(base: Settings, tmp_path: Path):
 
     assert rc == 0
     md_content = (tmp_path / "r.md").read_text(encoding="utf-8")
-    assert "| base | 800 | bm25 | 26 | 0.844 | 1.000 | 0.909 | — |" in md_content
-    assert "| top3 | 800 | bm25 | 26 | 0.844 | 1.000 | 0.909 | — |" in md_content
+    assert "| base | 800 | bm25 | 26 | 0.875 | 1.000 | 0.920 | — |" in md_content
+    assert "| top3 | 800 | bm25 | 26 | 0.875 | 1.000 | 0.920 | — |" in md_content
     json_data = json.loads((tmp_path / "r.json").read_text(encoding="utf-8"))
     assert json_data["variants"] == ["base", "top3"]
     assert json_data["generations"] == {}

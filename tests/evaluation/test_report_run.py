@@ -96,9 +96,9 @@ def test_2_render_retrieval_table():
             mode="bm25",
             chunks=26,
             questions=32,
-            hit_at_1=0.84375,
+            hit_at_1=0.875,
             hit_at_5=1.0,
-            mrr=0.9088541666666666,
+            mrr=0.9203125,
             misses=[],
         ),
         RetrievalReport(
@@ -116,7 +116,7 @@ def test_2_render_retrieval_table():
     assert len(lines) == 4
     assert lines[0] == "| Chunk | Modo | Chunks | Hit@1 | Hit@5 | MRR@10 | Fallos (top 5) |"
     assert lines[1] == "| ---: | --- | ---: | ---: | ---: | ---: | --- |"
-    assert lines[2] == "| 800 | bm25 | 26 | 0.844 | 1.000 | 0.909 | — |"
+    assert lines[2] == "| 800 | bm25 | 26 | 0.875 | 1.000 | 0.920 | — |"
     assert lines[3] == "| 500 | vector | 45 | 0.900 | 0.950 | 0.920 | q03, q17 |"
 
 
@@ -203,7 +203,7 @@ def test_5_run_evaluation_skip_llm(base: Settings, tmp_path: Path, preguntas):
         embedder=FakeEmbedder(),
     )
     assert len(reports) == 1
-    assert reports[0].hit_at_1 == pytest.approx(27 / 32)
+    assert reports[0].hit_at_1 == pytest.approx(28 / 32)
     assert generation is None
 
 
@@ -274,9 +274,9 @@ def test_7_main_skip_llm(base: Settings, tmp_path: Path):
 
     assert rc == 0
     md_content = (tmp_path / "r.md").read_text(encoding="utf-8")
-    assert "| 800 | bm25 | 26 | 0.844 | 1.000 | 0.909 | — |" in md_content
+    assert "| 800 | bm25 | 26 | 0.875 | 1.000 | 0.920 | — |" in md_content
     json_data = json.loads((tmp_path / "r.json").read_text(encoding="utf-8"))
-    assert json_data["retrieval"][0]["hit_at_1"] == pytest.approx(27 / 32)
+    assert json_data["retrieval"][0]["hit_at_1"] == pytest.approx(28 / 32)
     assert json_data["generation"] is None
 
 

@@ -93,6 +93,21 @@ class VectorStore:
         ]
         return sorted(chunks, key=lambda c: (c.source, c.page, c.position))
 
+    def get_chunks(self, ids: Sequence[str]) -> list[Chunk]:
+        """Los chunks de esos ids, en el orden pedido; los que no existen se omiten."""
+        if not ids:
+            return []
+        unicos = list(dict.fromkeys(ids))
+        result = self._collection.get(ids=unicos, include=["documents", "metadatas"])
+        db_ids = result["ids"]
+        docs = result["documents"] or []
+        metadatas = result["metadatas"] or []
+        por_id = {
+            cid: chunk_from_record(cid, doc, meta)
+            for cid, doc, meta in zip(db_ids, docs, metadatas, strict=True)
+        }
+        return [por_id[i] for i in unicos if i in por_id]
+
     def reset(self) -> None:
         self._client.delete_collection(self._name)
         self._collection = self._open_collection()

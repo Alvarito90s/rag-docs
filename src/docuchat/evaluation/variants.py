@@ -2,7 +2,11 @@
 
 from docuchat.config import Settings
 
-VARIANTS: dict[str, dict[str, object]] = {"base": {}, "rerank": {"rerank_enabled": True}}
+VARIANTS: dict[str, dict[str, object]] = {
+    "base": {},
+    "rerank": {"rerank_enabled": True},
+    "sin_rerank": {"rerank_enabled": False},
+}
 
 
 def parse_variants(text: str) -> list[str]:

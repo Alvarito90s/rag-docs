@@ -177,7 +177,7 @@ def test_run_checks_all_ok() -> None:
     llm_client.chat.completions.create.return_value = types.SimpleNamespace(
         choices=[types.SimpleNamespace(message=types.SimpleNamespace(content="OK"))]
     )
-    results = run_checks(Settings(), llm_client, emb_client)
+    results = run_checks(Settings(rerank_enabled=False), llm_client, emb_client)
     names = [r.name for r in results]
     assert names == ["llm_model", "embedding_model", "embedding", "chat"]
     assert all(r.ok for r in results)
@@ -197,7 +197,7 @@ def test_run_checks_partial_failure() -> None:
     llm_client.chat.completions.create.return_value = types.SimpleNamespace(
         choices=[types.SimpleNamespace(message=types.SimpleNamespace(content="OK"))]
     )
-    results = run_checks(Settings(), llm_client, emb_client)
+    results = run_checks(Settings(rerank_enabled=False), llm_client, emb_client)
     assert len(results) == 4
     assert results[0].ok is False
 

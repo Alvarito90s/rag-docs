@@ -1,4 +1,4 @@
-"""Indexador incremental: sincroniza una carpeta con VectorStore + Registry."""
+"""Indexador incremental: sincroniza una carpeta con VectorStore + Registry + FTS."""
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -11,6 +11,7 @@ from chromadb.config import Settings as ChromaSettings
 from docuchat.config import Settings
 from docuchat.index.chunker import chunk_document
 from docuchat.index.embeddings import Embedder, make_embedder
+from docuchat.index.fts import FtsIndex
 from docuchat.index.registry import Registry
 from docuchat.index.vector_store import VectorStore
 from docuchat.ingest.scanner import file_sha256, load_document, scan_folder
@@ -28,6 +29,21 @@ class IndexStats:
     removed: list[str] = field(default_factory=list)
     errors: list[tuple[str, str]] = field(default_factory=list)  # (source, mensaje)
     chunks_added: int = 0
+    fts_synced: list[str] = field(default_factory=list)
+
+
+def sync_fts(store: VectorStore, fts: FtsIndex) -> list[str]:
+    """Deja en FTS las mismas fuentes que en Chroma; devuelve las rellenadas (orden alfabético)."""
+    en_chroma = store.sources()
+    en_fts = fts.sources()
+    # Borrar restos en FTS que no están en Chroma
+    for source in sorted(en_fts - en_chroma):
+        fts.delete_source(source)
+    # Rellenar lo que falta
+    faltan = sorted(en_chroma - en_fts)
+    if faltan:
+        fts.add([c for c in store.all_chunks() if c.source in set(faltan)])
+    return faltan
 
 
 class Indexer:
@@ -40,18 +56,25 @@ class Indexer:
         embedder: Embedder,
         chunk_size: int,
         chunk_overlap: int,
+        fts: FtsIndex | None = None,
     ) -> None:
         self._store = store
         self._registry = registry
         self._embedder = embedder
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
+        self._fts = fts
 
     def index_folder(self, root: Path, on_progress: ProgressCallback | None = None) -> IndexStats:
         """Sincroniza el índice con los archivos de root."""
         paths = scan_folder(root)
         total = len(paths)
         scanned_sources: set[str] = set()
+
+        # Sincronizar FTS al inicio
+        synced: list[str] = []
+        if self._fts is not None:
+            synced = sync_fts(self._store, self._fts)
 
         # Leer fuentes presentes en Chroma (una sola vez al inicio)
         present = self._store.sources()
@@ -98,6 +121,11 @@ class Indexer:
             self._store.add(chunks, vectors)
             self._registry.upsert(source, sha, len(chunks))
 
+            # e1) Guardar en FTS
+            if self._fts is not None:
+                self._fts.delete_source(source)
+                self._fts.add(chunks)
+
             # f) Categorizar
             if entry is None:
                 added.append(source)
@@ -116,6 +144,8 @@ class Indexer:
             if source not in scanned_sources:
                 self._store.delete_source(source)
                 self._registry.delete(source)
+                if self._fts is not None:
+                    self._fts.delete_source(source)
                 removed.append(source)
 
         return IndexStats(
@@ -125,6 +155,7 @@ class Indexer:
             removed=removed,
             errors=errors,
             chunks_added=chunks_added,
+            fts_synced=synced,
         )
 
     def chunk_count(self) -> int:
@@ -151,6 +182,7 @@ def build_indexer(settings: Settings, embedder: Embedder | None = None) -> Index
     """Crea el Indexer con las rutas, modelo y chunking de settings."""
     store = VectorStore(settings.chroma_dir, settings.chroma_collection, settings.embedding_model)
     registry = Registry(settings.registry_path)
+    fts = FtsIndex(settings.fts_path)
     if embedder is None:
         embedder = make_embedder(settings)
     return Indexer(
@@ -159,11 +191,12 @@ def build_indexer(settings: Settings, embedder: Embedder | None = None) -> Index
         embedder=embedder,
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
+        fts=fts,
     )
 
 
 def reset_index(settings: Settings) -> None:
-    """Borra la colección de Chroma y vacía el registro."""
+    """Borra la colección de Chroma, vacía el registro y FTS."""
     client = chromadb.PersistentClient(
         path=str(settings.chroma_dir.resolve()),
         settings=ChromaSettings(anonymized_telemetry=False),
@@ -173,3 +206,4 @@ def reset_index(settings: Settings) -> None:
         client.delete_collection(settings.chroma_collection)
     with Registry(settings.registry_path) as reg:
         reg.clear()
+    FtsIndex(settings.fts_path).clear()

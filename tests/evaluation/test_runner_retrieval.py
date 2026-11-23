@@ -110,9 +110,9 @@ def test_4_bm25_800(base: Settings, tmp_path: Path, preguntas):
     report = evaluate_retrieval(searcher, preguntas, SearchMode.BM25, chunk_size=800, chunks=chunks)
     assert report.chunk_size == 800
     assert report.questions == 32
-    assert report.hit_at_1 == pytest.approx(27 / 32)
+    assert report.hit_at_1 == pytest.approx(28 / 32)
     assert report.hit_at_5 == 1.0
-    assert report.mrr == pytest.approx(0.9088541666666666)
+    assert report.mrr == pytest.approx(0.9203125)
     assert report.misses == []
     assert report.mode == "bm25"
 
@@ -130,7 +130,7 @@ def test_5_bm25_1200(base: Settings, tmp_path: Path, preguntas):
     )
     assert report.questions == 32
     assert report.hit_at_1 == pytest.approx(28 / 32)
-    assert report.mrr == pytest.approx(0.9244791666666666)
+    assert report.mrr == pytest.approx(0.9229166666666667)
 
 
 # ── Test 6: solo answerable ─────────────────────────────────────────────

@@ -1,11 +1,12 @@
-"""Buscador híbrido: vectorial + BM25 con fusión RRF y reranker opcional."""
+"""Buscador híbrido: vectorial + FTS5 (léxica), fusión RRF y reranker opcional."""
 
 import logging
 from enum import StrEnum
 
 from docuchat.config import Settings
-from docuchat.index.bm25 import Bm25Index
 from docuchat.index.embeddings import Embedder, make_embedder
+from docuchat.index.fts import FtsIndex
+from docuchat.index.indexer import sync_fts
 from docuchat.index.vector_store import VectorStore
 from docuchat.models import Chunk, SearchResult
 from docuchat.retrieval.fusion import drop_adjacent, rrf_fuse
@@ -30,13 +31,14 @@ def format_query(query: str, instruction: str) -> str:
 
 
 class Searcher:
-    """Búsqueda híbrida sobre VectorStore; el índice BM25 se construye en memoria la primera vez."""
+    """Búsqueda híbrida sobre VectorStore; la parte léxica sale de FTS5."""
 
     def __init__(
         self,
         store: VectorStore,
         embedder: Embedder,
         *,
+        fts: FtsIndex,
         candidate_k: int,
         rrf_k: int,
         query_instruction: str,
@@ -45,20 +47,20 @@ class Searcher:
     ) -> None:
         self._store = store
         self._embedder = embedder
+        self._fts = fts
         self._candidate_k = candidate_k
         self._rrf_k = rrf_k
         self._query_instruction = query_instruction
         self._reranker = reranker
         self._rerank_candidates = rerank_candidates
-        self._cache: tuple[dict[str, Chunk], Bm25Index] | None = None
 
     def size(self) -> int:
         """Número de chunks indexados."""
         return self._store.count()
 
     def refresh(self) -> None:
-        """Olvida la caché interna; se reconstruye en la siguiente búsqueda."""
-        self._cache = None
+        """No hace nada: FTS se lee en cada búsqueda."""
+        pass
 
     def search(
         self, query: str, top_k: int, mode: SearchMode = SearchMode.HYBRID
@@ -67,17 +69,10 @@ class Searcher:
         if not query.strip() or top_k <= 0:
             return []
 
-        # Lazy init
-        if self._cache is None:
-            chunks = self._store.all_chunks()
-            if not chunks:
-                return []
-            cache_map = {c.chunk_id: c for c in chunks}
-            ids = list(cache_map)
-            texts = [cache_map[cid].text for cid in ids]
-            self._cache = (cache_map, Bm25Index(ids, texts))
+        if self._store.count() == 0:
+            return []
 
-        cache, bm25 = self._cache
+        chunks: dict[str, Chunk] = {}
         vector_ids: list[str] = []
         bm25_ids: list[str] = []
 
@@ -86,10 +81,10 @@ class Searcher:
             hits = self._store.query(vector, self._candidate_k)
             vector_ids = [c.chunk_id for c, _ in hits]
             for c, _ in hits:
-                cache[c.chunk_id] = c
+                chunks[c.chunk_id] = c
 
         if mode in (SearchMode.HYBRID, SearchMode.BM25):
-            bm25_results = bm25.search(query, self._candidate_k)
+            bm25_results = self._fts.search(query, self._candidate_k)
             bm25_ids = [i for i, _ in bm25_results]
 
         # rankings según mode
@@ -101,7 +96,15 @@ class Searcher:
             rankings = [bm25_ids]
 
         fused = rrf_fuse(rankings, self._rrf_k)
-        ordered = [cache[i] for i, _ in fused]
+
+        # Obtener chunks faltantes de Chroma
+        faltan = [i for i, _ in fused if i not in chunks]
+        if faltan:
+            fetched = self._store.get_chunks(faltan)
+            chunks.update({c.chunk_id: c for c in fetched})
+
+        # Construir orden final
+        ordered = [chunks[i] for i, _ in fused if i in chunks]
         kept = drop_adjacent(ordered)
 
         # Mapas de posición (desde 1)
@@ -139,12 +142,15 @@ class Searcher:
 
 
 def build_searcher(settings: Settings, embedder: Embedder | None = None) -> Searcher:
-    """Crea el Searcher con el VectorStore y los parámetros de settings."""
+    """Crea el Searcher con el VectorStore, FTS y los parámetros de settings."""
     store = VectorStore(settings.chroma_dir, settings.chroma_collection, settings.embedding_model)
+    fts = FtsIndex(settings.fts_path)
+    sync_fts(store, fts)
     reranker = make_reranker(settings) if settings.rerank_enabled else None
     return Searcher(
         store,
         embedder or make_embedder(settings),
+        fts=fts,
         candidate_k=settings.candidate_k,
         rrf_k=settings.rrf_k,
         query_instruction=settings.query_instruction,

@@ -137,8 +137,8 @@ def test_keywords_by_category():
 def test_bm25_v2_por_categoria(clean_env: Path):
     r = bm25_report(clean_env, "samples_v2", "eval/questions_v2.jsonl")
     assert r.chunks == 73
-    assert r.hit_at_1 == pytest.approx(0.7, abs=1e-6)
-    assert r.hit_at_5 == pytest.approx(0.8, abs=1e-6)
+    assert r.hit_at_1 == pytest.approx(0.6857142857142857, abs=1e-6)
+    assert r.hit_at_5 == pytest.approx(0.8142857142857143, abs=1e-6)
     cat_keys = list(r.by_category.keys())
     assert cat_keys == [
         "literal",
@@ -153,16 +153,16 @@ def test_bm25_v2_por_categoria(clean_env: Path):
     c = cat["parafrasis"]
     assert (c.questions, c.hit_at_1, c.hit_at_5, c.mrr) == (
         10,
-        0.3,
+        0.2,
         0.4,
-        pytest.approx(0.36, abs=1e-6),
+        pytest.approx(0.2933333, abs=1e-6),
     )
     c = cat["implicita"]
     assert (c.questions, c.hit_at_1, c.hit_at_5, c.mrr) == (
         10,
         0.1,
         0.4,
-        pytest.approx(0.2503968, abs=1e-6),
+        pytest.approx(0.2569444, abs=1e-6),
     )
     c = cat["tabla"]
     assert (c.questions, c.hit_at_1, c.hit_at_5, c.mrr) == (
@@ -176,7 +176,7 @@ def test_bm25_v2_por_categoria(clean_env: Path):
         10,
         0.9,
         0.9,
-        pytest.approx(0.9111111, abs=1e-6),
+        pytest.approx(0.9125, abs=1e-6),
     )
 
 
@@ -188,9 +188,9 @@ def test_bm25_v1_general(clean_env: Path):
     assert list(r.by_category) == ["general"]
     general = r.by_category["general"]
     assert general.questions == 32
-    assert general.hit_at_1 == pytest.approx(27 / 32, abs=1e-6)
+    assert general.hit_at_1 == pytest.approx(28 / 32, abs=1e-6)
     assert general.hit_at_5 == 1.0
-    assert general.mrr == pytest.approx(0.9088542, abs=1e-6)
+    assert general.mrr == pytest.approx(0.9203125, abs=1e-6)
 
 
 # ── Test 7 ───────────────────────────────────────────────────────────────────

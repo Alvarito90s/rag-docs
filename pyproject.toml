@@ -15,7 +15,6 @@ dependencies = [
     "rich>=15,<16",
     "typer>=0.29,<1",
     "chromadb>=1.5,<2",
-    "rank-bm25>=0.2.2,<0.3",
     "fastapi>=0.165,<1",
     "uvicorn>=0.54,<1",
     "jinja2>=3.1,<4",
@@ -58,7 +57,7 @@ plugins = ["pydantic.mypy"]
 exclude = ["scripts", "tests"]
 
 [[tool.mypy.overrides]]
-module = ["pymupdf.*", "fitz.*", "docx.*", "rank_bm25.*"]
+module = ["pymupdf.*", "fitz.*", "docx.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

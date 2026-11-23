@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from docuchat.index.bm25 import tokenize
+from docuchat.index.fts import FtsIndex, tokenize
 from docuchat.index.vector_store import VectorStore
 from docuchat.models import Chunk, make_chunk_id
 from docuchat.retrieval.searcher import Searcher, SearchMode, build_searcher, format_query
@@ -57,9 +57,12 @@ class TestSearcher:
         self.store = VectorStore(tmp_path / "chroma", "chunks", "fake")
         embedder_corpus = KeywordEmbedder()
         self.store.add(CORPUS, embedder_corpus.embed([c.text for c in CORPUS]))
+        self.fts = FtsIndex(tmp_path / "fts.sqlite3")
+        self.fts.add(CORPUS)
         self.searcher = Searcher(
             self.store,
             KeywordEmbedder(),
+            fts=self.fts,
             candidate_k=20,
             rrf_k=60,
             query_instruction=INSTR,
@@ -102,7 +105,7 @@ class TestSearcher:
     def test_bm25(self):
         results = self.searcher.search("garantia del contrato", 5, SearchMode.BM25)
         ids = [r.chunk.chunk_id for r in results]
-        assert ids == ["a.pdf#p1#c0", "b.pdf#p3#c0"]
+        assert ids == ["a.pdf#p1#c1", "b.pdf#p3#c0"]
         bm25_ranks = [r.bm25_rank for r in results]
         assert bm25_ranks == [1, 3]
         vector_ranks = [r.vector_rank for r in results]
@@ -136,11 +139,13 @@ class TestSearcher:
 
     # ── Store vacío ────────────────────────────────────────────────────────
 
-    def test_empty_store(self):
-        empty_store = VectorStore(Path("data/test_empty_chroma"), "chunks", "fake")
+    def test_empty_store(self, tmp_path: Path):
+        empty_store = VectorStore(tmp_path / "empty_chroma", "chunks", "fake")
+        empty_fts = FtsIndex(tmp_path / "empty_fts.sqlite3")
         empty_searcher = Searcher(
             empty_store,
             KeywordEmbedder(),
+            fts=empty_fts,
             candidate_k=20,
             rrf_k=60,
             query_instruction=INSTR,
@@ -152,32 +157,26 @@ class TestSearcher:
     # ── refresh ────────────────────────────────────────────────────────────
 
     def test_refresh(self):
-        # Primera búsqueda BM25
-        r1 = self.searcher.search("Valladolid", 5, SearchMode.BM25)
-        assert len(r1) == 1
-
-        # Añadimos un chunk con "Valladolid"
+        assert len(self.searcher.search("Valladolid", 5, SearchMode.BM25)) == 1
         new_chunk = mk("d.txt", 1, 0, "Valladolid en invierno.")
         self.store.add([new_chunk], [[0.01] * 5])
-
-        # Sin refresh → sigue 1 resultado
-        r2 = self.searcher.search("Valladolid", 5, SearchMode.BM25)
-        assert len(r2) == 1
-
-        # Tras refresh → 2 resultados
-        self.searcher.refresh()
-        r3 = self.searcher.search("Valladolid", 5, SearchMode.BM25)
-        ids = {r.chunk.chunk_id for r in r3}
+        self.fts.add([new_chunk])
+        ids = {r.chunk.chunk_id for r in self.searcher.search("Valladolid", 5, SearchMode.BM25)}
         assert ids == {"a.pdf#p1#c0", "d.txt#p1#c0"}
+        self.searcher.refresh()  # no hace nada
+        ids2 = {r.chunk.chunk_id for r in self.searcher.search("Valladolid", 5, SearchMode.BM25)}
+        assert ids2 == ids
 
     # ── Caché con índice vacío ─────────────────────────────────────────────
 
     def test_empty_then_filled(self, tmp_path: Path):
         # Store vacío → search devuelve [] sin cachear nada
         empty_store = VectorStore(tmp_path / "empty", "chunks", "fake")
+        fts = FtsIndex(tmp_path / "fts_empty.sqlite3")
         s = Searcher(
             empty_store,
             KeywordEmbedder(),
+            fts=fts,
             candidate_k=20,
             rrf_k=60,
             query_instruction=INSTR,
@@ -186,6 +185,7 @@ class TestSearcher:
 
         # Añadimos el corpus sin refresh
         empty_store.add(CORPUS, KeywordEmbedder().embed([c.text for c in CORPUS]))
+        fts.add(CORPUS)
 
         # Buscamos de nuevo: debería encontrar el resultado
         results = s.search("cafetera", 1)

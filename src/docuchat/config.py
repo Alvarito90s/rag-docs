@@ -38,11 +38,11 @@ class Settings(BaseSettings):
     candidate_k: int = Field(default=20, gt=0)  # candidatos por buscador antes de fusionar
     rrf_k: int = Field(default=60, gt=0)
     query_instruction: str = "Given a question, retrieve passages that answer the question"
-    # Reranker (oMLX /v1/rerank; apagado por defecto)
-    rerank_enabled: bool = False
+    # Reranker (oMLX /v1/rerank; activado por defecto, decisión H3)
+    rerank_enabled: bool = True
     rerank_base_url: str = "http://127.0.0.1:8000/v1"
     rerank_model: str = "Qwen3-Reranker-0.6B-4bit"
-    rerank_candidates: int = Field(default=20, gt=0)  # candidatos de RRF que se reordenan
+    rerank_candidates: int = Field(default=10, gt=0)  # candidatos de RRF que se reordenan
     rerank_instruction: str = "Given a question, retrieve passages that answer the question"
     # Generación
     llm_max_tokens: int = Field(default=1024, gt=0)
@@ -71,6 +71,11 @@ class Settings(BaseSettings):
     def chroma_dir(self) -> Path:
         """Carpeta de la base vectorial."""
         return self.data_dir / "chroma"
+
+    @property
+    def fts_path(self) -> Path:
+        """Archivo SQLite del índice léxico (FTS5)."""
+        return self.data_dir / "fts.sqlite3"
 
     @property
     def registry_path(self) -> Path:
