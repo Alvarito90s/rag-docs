@@ -17,6 +17,7 @@ class EvalQuestion(BaseModel):
     expected_page: int | None = Field(default=None, ge=1)
     answer_keywords: list[str] = Field(default_factory=list)
     answerable: bool
+    category: str = Field(default="general", pattern=r"^[a-z_]+$")
 
     @model_validator(mode="after")
     def _check_consistency(self) -> "EvalQuestion":
