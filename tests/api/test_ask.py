@@ -154,3 +154,54 @@ class TestAskValidation:
     def test_ask_validation(self, client: TestClient, body: dict) -> None:
         resp = client.post("/api/ask", json=body)
         assert resp.status_code == 422
+
+
+class TestAskUnexpectedError:
+    """Test 7b: error inesperado al recuperar → evento error."""
+
+    def test_ask_retrieve_error(
+        self,
+        ingested: TestClient,
+        services: Services,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        def boom(question: str):  # type: ignore[no-untyped-def]
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(services.answerer, "retrieve", boom)
+
+        resp = ingested.post("/api/ask", json={"question": "test"})
+        assert resp.status_code == 200
+
+        events = parse_sse(resp.text)
+        assert events == [("error", {"message": "RuntimeError: boom"})]
+
+        assert caplog.record_tuples == [
+            ("docuchat.api.routes_api", 40, "Fallo inesperado en /api/ask")
+        ]
+
+
+class TestAskMidStreamError:
+    """Test 7c: error a mitad del stream → token + evento error."""
+
+    def test_ask_mid_stream_error(
+        self,
+        ingested: TestClient,
+        services: Services,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        def cortado(question: str, context):  # type: ignore[no-untyped-def]
+            yield "Hola"
+            raise RuntimeError("corte")
+
+        monkeypatch.setattr(services.answerer, "stream", cortado)
+
+        resp = ingested.post("/api/ask", json={"question": "test"})
+        assert resp.status_code == 200
+
+        events = parse_sse(resp.text)
+        assert events == [
+            ("token", {"text": "Hola"}),
+            ("error", {"message": "RuntimeError: corte"}),
+        ]

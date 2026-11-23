@@ -34,11 +34,11 @@ SAMPLES = Path(__file__).parent.parent.parent / "samples"
 
 
 @pytest.fixture()
-def settings_docs(tmp_path: Path):
+def settings_docs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Settings limpia con copia de samples en tmp_path/docs."""
     for key in list(os.environ):
         if key.startswith("DOCUCHAT_"):
-            del os.environ[key]
+            monkeypatch.delenv(key, raising=False)
 
     src = Path(__file__).parent.parent.parent / "samples"
     dest = tmp_path / "docs"
@@ -46,7 +46,7 @@ def settings_docs(tmp_path: Path):
 
     from docuchat.config import Settings
 
-    return Settings(data_dir=tmp_path / "data", documents_dir=dest)
+    return Settings(data_dir=tmp_path / "data", documents_dir=dest, _env_file=None)
 
 
 @pytest.fixture()
@@ -81,10 +81,10 @@ def test_ingesta_normal(jobs: IngestJobs, settings_docs: Settings) -> None:
     assert jobs._finish_counter[0] == 1  # type: ignore[attr-defined]
 
 
-def test_una_a_la_vez() -> None:
+def test_una_a_la_vez(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
         if key.startswith("DOCUCHAT_"):
-            del os.environ[key]
+            monkeypatch.delenv(key, raising=False)
 
     import tempfile
 
@@ -96,6 +96,7 @@ def test_una_a_la_vez() -> None:
         settings = Settings(
             data_dir=Path(tmp) / "data",
             documents_dir=dest,
+            _env_file=None,
         )
         embedder = FakeEmbedder()
         embedder.block = threading.Event()
@@ -117,10 +118,10 @@ def test_una_a_la_vez() -> None:
         assert jobs.is_running() is False
 
 
-def test_fallo() -> None:
+def test_fallo(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
         if key.startswith("DOCUCHAT_"):
-            del os.environ[key]
+            monkeypatch.delenv(key, raising=False)
 
     import tempfile
 
@@ -132,6 +133,7 @@ def test_fallo() -> None:
         settings = Settings(
             data_dir=Path(tmp) / "data",
             documents_dir=dest,
+            _env_file=None,
         )
         embedder = FakeEmbedder()
         embedder.fail = True
@@ -178,10 +180,10 @@ def test_reset(jobs: IngestJobs) -> None:
     assert len(result2.stats.added) == 7
 
 
-def test_carpeta_inexistente() -> None:
+def test_carpeta_inexistente(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in list(os.environ):
         if key.startswith("DOCUCHAT_"):
-            del os.environ[key]
+            monkeypatch.delenv(key, raising=False)
 
     import tempfile
 
@@ -189,6 +191,7 @@ def test_carpeta_inexistente() -> None:
         settings = Settings(
             data_dir=Path(tmp) / "data",
             documents_dir=Path(tmp) / "no",
+            _env_file=None,
         )
         embedder = FakeEmbedder()
         counter = [0]
@@ -205,27 +208,15 @@ def test_carpeta_inexistente() -> None:
         assert counter[0] == 1
 
 
-def test_get_latest() -> None:
-    for key in list(os.environ):
-        if key.startswith("DOCUCHAT_"):
-            del os.environ[key]
-
-    from docuchat.config import Settings
-
-    settings = Settings()
-    embedder = FakeEmbedder()
-
-    def on_finish() -> None:
-        pass
-
-    jobs = IngestJobs(settings, embedder, on_finish)
-
+def test_get_latest(jobs: IngestJobs) -> None:
     assert jobs.get("nada") is None
     assert jobs.latest() is None
 
     job = jobs.start()
     assert jobs.latest() is not None
     assert jobs.latest().id == job.id
+
+    jobs.wait(job.id)
 
 
 def test_job_to_dict(jobs: IngestJobs) -> None:

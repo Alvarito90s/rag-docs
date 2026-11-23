@@ -1,5 +1,6 @@
 """Rutas de la API REST: health, documentos, búsqueda e ingestas."""
 
+import logging
 from collections.abc import Iterator
 from urllib.parse import quote
 
@@ -14,6 +15,8 @@ from docuchat.generation.answer import Answer, build_answerer
 from docuchat.index.embeddings import EmbeddingError
 from docuchat.models import SearchResult
 from docuchat.retrieval.searcher import SearchMode
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -74,6 +77,12 @@ def ask(body: AskRequest, services: ServicesDep) -> Iterator[ServerSentEvent]:
         answer = answerer.finalize(body.question, "".join(trozos), context)
         yield ServerSentEvent(event="done", data=answer_to_dict(answer))
     except (OpenAIError, EmbeddingError) as e:
+        yield ServerSentEvent(
+            event="error",
+            data={"message": f"{type(e).__name__}: {e}"},
+        )
+    except Exception as e:  # noqa: BLE001 — el stream debe terminar siempre con done o error
+        logger.exception("Fallo inesperado en /api/ask")
         yield ServerSentEvent(
             event="error",
             data={"message": f"{type(e).__name__}: {e}"},

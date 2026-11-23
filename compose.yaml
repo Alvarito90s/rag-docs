@@ -1,0 +1,25 @@
+services:
+  docuchat:
+    build: .
+    image: docuchat:local
+    ports:
+      - "127.0.0.1:8001:8001"
+    env_file:
+      - path: .env
+        required: false
+    # environment gana a env_file: las rutas y URLs del .env local no valen dentro del contenedor.
+    environment:
+      DOCUCHAT_API_HOST: 0.0.0.0
+      DOCUCHAT_DOCUMENTS_DIR: /documents
+      DOCUCHAT_DATA_DIR: /data
+      DOCUCHAT_LLM_BASE_URL: http://host.docker.internal:8000/v1
+      DOCUCHAT_EMBEDDING_BASE_URL: http://host.docker.internal:8000/v1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./samples:/documents:ro
+      - docuchat-data:/data
+    restart: unless-stopped
+
+volumes:
+  docuchat-data:

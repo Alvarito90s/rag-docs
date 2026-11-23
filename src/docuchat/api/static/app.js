@@ -78,6 +78,7 @@ async function ask(text) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let finished = false;
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
@@ -87,9 +88,11 @@ async function ask(text) {
       const parsed = parseBlock(buffer.slice(0, index));
       buffer = buffer.slice(index + 2);
       if (parsed) handleEvent(parsed[0], parsed[1]);
+      if (parsed && (parsed[0] === "done" || parsed[0] === "error")) finished = true;
       index = buffer.indexOf("\n\n");
     }
   }
+  if (!finished) showError("la conexión se cerró sin respuesta");
 }
 
 form.addEventListener("submit", async (e) => {
