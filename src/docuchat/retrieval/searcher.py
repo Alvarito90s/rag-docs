@@ -1,5 +1,6 @@
-"""Buscador híbrido: vectorial + BM25 con fusión RRF."""
+"""Buscador híbrido: vectorial + BM25 con fusión RRF y reranker opcional."""
 
+import logging
 from enum import StrEnum
 
 from docuchat.config import Settings
@@ -8,6 +9,9 @@ from docuchat.index.embeddings import Embedder, make_embedder
 from docuchat.index.vector_store import VectorStore
 from docuchat.models import Chunk, SearchResult
 from docuchat.retrieval.fusion import drop_adjacent, rrf_fuse
+from docuchat.retrieval.reranker import Reranker, RerankError, make_reranker
+
+logger = logging.getLogger(__name__)
 
 
 class SearchMode(StrEnum):
@@ -36,12 +40,16 @@ class Searcher:
         candidate_k: int,
         rrf_k: int,
         query_instruction: str,
+        reranker: Reranker | None = None,
+        rerank_candidates: int = 20,
     ) -> None:
         self._store = store
         self._embedder = embedder
         self._candidate_k = candidate_k
         self._rrf_k = rrf_k
         self._query_instruction = query_instruction
+        self._reranker = reranker
+        self._rerank_candidates = rerank_candidates
         self._cache: tuple[dict[str, Chunk], Bm25Index] | None = None
 
     def size(self) -> int:
@@ -94,12 +102,26 @@ class Searcher:
 
         fused = rrf_fuse(rankings, self._rrf_k)
         ordered = [cache[i] for i, _ in fused]
-        kept = drop_adjacent(ordered)[:top_k]
+        kept = drop_adjacent(ordered)
 
         # Mapas de posición (desde 1)
         vector_map: dict[str, int] = {cid: i + 1 for i, cid in enumerate(vector_ids)}
         bm25_map: dict[str, int] = {cid: i + 1 for i, cid in enumerate(bm25_ids)}
         fused_scores = dict(fused)
+
+        # Rerank opcional
+        rerank_scores: list[float] | None = None
+        ordered_indices: list[int] = []
+        if self._reranker is not None and len(kept) > 0:
+            try:
+                pool = kept[: max(self._rerank_candidates, top_k)]
+                scores = self._reranker.rerank(query, [c.text for c in pool])
+                ordered_indices = sorted(range(len(pool)), key=lambda i: -scores[i])
+                kept = [pool[i] for i in ordered_indices[:top_k]]
+                rerank_scores = scores
+            except RerankError as e:
+                logger.warning("Reranker no disponible; uso el orden RRF: %s", e)
+                rerank_scores = None
 
         return [
             SearchResult(
@@ -108,18 +130,24 @@ class Searcher:
                 score=fused_scores[chunk.chunk_id],
                 vector_rank=vector_map.get(chunk.chunk_id),
                 bm25_rank=bm25_map.get(chunk.chunk_id),
+                rerank_score=(
+                    rerank_scores[ordered_indices[rank - 1]] if rerank_scores is not None else None
+                ),
             )
-            for rank, chunk in enumerate(kept, start=1)
+            for rank, chunk in enumerate(kept[:top_k], start=1)
         ]
 
 
 def build_searcher(settings: Settings, embedder: Embedder | None = None) -> Searcher:
     """Crea el Searcher con el VectorStore y los parámetros de settings."""
     store = VectorStore(settings.chroma_dir, settings.chroma_collection, settings.embedding_model)
+    reranker = make_reranker(settings) if settings.rerank_enabled else None
     return Searcher(
         store,
         embedder or make_embedder(settings),
         candidate_k=settings.candidate_k,
         rrf_k=settings.rrf_k,
         query_instruction=settings.query_instruction,
+        reranker=reranker,
+        rerank_candidates=settings.rerank_candidates,
     )

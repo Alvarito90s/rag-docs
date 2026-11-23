@@ -154,6 +154,7 @@ def result_to_dict(result: SearchResult) -> dict[str, object]:
         "text": result.chunk.text,
         "vector_rank": result.vector_rank,
         "bm25_rank": result.bm25_rank,
+        "rerank_score": result.rerank_score,
         "url": file_url(result.chunk.source, result.chunk.page),
     }
 

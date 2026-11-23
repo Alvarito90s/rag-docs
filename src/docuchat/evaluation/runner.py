@@ -6,7 +6,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from docuchat.config import Settings
+from docuchat.evaluation.categories import (
+    CategoryScores,
+    keywords_by_category,
+    retrieval_by_category,
+)
 from docuchat.evaluation.dataset import EvalQuestion
+from docuchat.evaluation.judge import Judge, cited_passages
 from docuchat.evaluation.metrics import (
     citation_counts,
     first_hit_rank,
@@ -36,6 +42,8 @@ class RetrievalReport:
     hit_at_5: float
     mrr: float
     misses: list[str] = field(default_factory=list)  # ids sin acierto en el top 5
+    by_category: dict[str, CategoryScores] = field(default_factory=dict)
+    variant: str = "base"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -56,6 +64,8 @@ class QuestionResult:
     citations_total: int
     first_token_s: float | None
     total_s: float
+    faithful: bool | None = None  # None: no juzgada (rechazo, sin juez o veredicto ilegible)
+    unsupported: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -71,13 +81,19 @@ class GenerationReport:
     false_refusals: int
     avg_first_token_s: float | None
     avg_total_s: float
+    judged: int = 0  # respuestas con veredicto
+    unjudged: int = 0  # respuestas juzgables cuyo veredicto no se pudo leer
+    faithfulness: float | None = None  # respaldadas / judged
     results: list[QuestionResult] = field(default_factory=list)
+    keywords_by_category: dict[str, float | None] = field(default_factory=dict)
+    variant: str = "base"
 
 
 def evaluate_generation(
     answerer: Answerer,
     questions: Sequence[EvalQuestion],
     clock: Callable[[], float] = time.perf_counter,
+    judge: Judge | None = None,
 ) -> GenerationReport:
     """Responde cada pregunta y agrega las métricas."""
     results: list[QuestionResult] = []
@@ -120,6 +136,17 @@ def evaluate_generation(
             if no:
                 refusals_no_answer += 1
 
+        # Juez: se evalúa solo respuestas que no son rechazo
+        faithful: bool | None = None
+        unsupported: list[str] = []
+        if judge is not None and not no:
+            verdict = judge.judge(q.question, answer.text, cited_passages(answer))
+            if verdict is None:
+                faithful = None
+            else:
+                faithful = verdict.supported
+                unsupported = verdict.unsupported
+
         results.append(
             QuestionResult(
                 id=q.id,
@@ -131,6 +158,8 @@ def evaluate_generation(
                 citations_total=cit_total,
                 first_token_s=(first_token_time - t0 if first_token_time is not None else None),
                 total_s=end - t0,
+                faithful=faithful,
+                unsupported=unsupported,
             )
         )
 
@@ -139,6 +168,14 @@ def evaluate_generation(
 
     first_tokens = [r.first_token_s for r in results if r.first_token_s is not None]
     avg_ft = sum(first_tokens) / len(first_tokens) if first_tokens else None
+
+    # Calcular métricas de fidelidad
+    judged = sum(1 for r in results if r.faithful is not None)
+    unjudged = sum(
+        1 for r in results if r.faithful is None and not r.no_answer and judge is not None
+    )
+    respaldadas = sum(1 for r in results if r.faithful is True)
+    faithfulness = ratio(respaldadas, judged) if judged > 0 else None
 
     return GenerationReport(
         questions=len(questions),
@@ -150,7 +187,13 @@ def evaluate_generation(
         false_refusals=false_refusals,
         avg_first_token_s=avg_ft,
         avg_total_s=(sum(r.total_s for r in results) / len(results) if results else 0.0),
+        judged=judged,
+        unjudged=unjudged,
+        faithfulness=faithfulness,
         results=results,
+        keywords_by_category=keywords_by_category(
+            questions, {r.id: r.keywords_ok for r in results}
+        ),
     )
 
 
@@ -211,4 +254,5 @@ def evaluate_retrieval(
         hit_at_5=hit_at(ranks, 5),
         mrr=mean_reciprocal_rank(ranks),
         misses=misses,
+        by_category=retrieval_by_category(answerable_q, ranks),
     )

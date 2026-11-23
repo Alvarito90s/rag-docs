@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     candidate_k: int = Field(default=20, gt=0)  # candidatos por buscador antes de fusionar
     rrf_k: int = Field(default=60, gt=0)
     query_instruction: str = "Given a question, retrieve passages that answer the question"
+    # Reranker (oMLX /v1/rerank; apagado por defecto)
+    rerank_enabled: bool = False
+    rerank_base_url: str = "http://127.0.0.1:8000/v1"
+    rerank_model: str = "Qwen3-Reranker-0.6B-4bit"
+    rerank_candidates: int = Field(default=20, gt=0)  # candidatos de RRF que se reordenan
+    rerank_instruction: str = "Given a question, retrieve passages that answer the question"
     # Generación
     llm_max_tokens: int = Field(default=1024, gt=0)
     llm_temperature: float = Field(default=0.0, ge=0, le=2)
@@ -52,6 +58,13 @@ class Settings(BaseSettings):
         """Rechaza candidate_k menor que top_k."""
         if self.candidate_k < self.top_k:
             raise ValueError("candidate_k debe ser mayor o igual que top_k")
+        return self
+
+    @model_validator(mode="after")
+    def _check_rerank(self) -> "Settings":
+        """Rechaza rerank_candidates menor que top_k."""
+        if self.rerank_candidates < self.top_k:
+            raise ValueError("rerank_candidates debe ser mayor o igual que top_k")
         return self
 
     @property

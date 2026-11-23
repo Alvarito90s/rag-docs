@@ -70,30 +70,34 @@ Objetivo: poder medir mejoras. Ahora mismo Hit@5 = 1.000 en las 9 configuracione
   - Comprobado al escribirlas: las palabras clave de las 70 preguntas con respuesta están en su página esperada.
   - BM25 sin modelos ya da Hit@1 0.70 y Hit@5 0.80 sobre el corpus v2. Con chunk 800, en el v1 daba 0.844 y 1.000. Las implícitas se quedan en Hit@1 0.10.
 
-- [ ] **083 · Métricas por categoría**
-  - `RetrievalReport` gana Hit@1, Hit@5 y MRR por categoría.
-  - `GenerationReport` gana el acierto de palabras clave por categoría.
-  - `report.py` pinta una tabla por categoría.
-  - Con el dataset v1, todo cae en `general` y el informe no cambia de forma.
+- [x] **083 · Métricas por categoría** — spec escrita: `tasks/083-metricas-categoria.md`.
+  - Hit@1, Hit@5 y MRR por categoría en la recuperación; acierto de palabras clave por categoría en la generación; tabla "Por categoría" en el informe.
+  - Con el dataset v1 (todo `general`), el informe sale idéntico al de ahora.
 
-- [ ] **084 · Variantes de evaluación**
-  - `VARIANTS: dict[str, dict[str, object]]`: cada variante es un nombre más los cambios que aplica a `Settings`. De momento solo `{"base": {}}`.
-  - `run_eval.py` gana `--variants base,...`. Cada variante indexa en su propia carpeta (`data/eval/<variante>-cs<N>`). Las tablas de recuperación y generación ganan la columna "Variante".
-  - Cada fase posterior solo tendrá que añadir una entrada al diccionario.
+- [x] **084 · Variantes de evaluación** — spec escrita: `tasks/084-variantes-eval.md`.
+  - `VARIANTS` en `evaluation/variants.py` (de momento solo `base`), `--variants`, `run_variant()` y datos en `data/eval/<variante>/cs<N>`.
+  - La tabla de recuperación gana la columna "Variante" y hay una sección de generación por variante.
+  - Con solo `base`, informe idéntico y `run_evaluation()` con la misma firma.
 
-- [ ] **085 · Repeticiones de la generación**
-  - `--runs N` (por defecto 1). Para cada métrica de generación da la media y el rango mínimo–máximo.
-  - Lista de **preguntas inestables**: las que cambian de resultado entre pasadas. Es la lección de q17 convertida en métrica.
-  - La recuperación es determinista: se ejecuta una sola vez.
+- [x] **085 · Juez de fidelidad (opcional)** — spec escrita: `tasks/085-juez-fidelidad.md`.
+  - Va antes que las repeticiones para que la tabla de repeticiones incluya la fidelidad desde el principio.
+  - `--judge` y `--judge-model`; sin `--judge-model`, el juez es el mismo modelo que responde.
+  - Juzga toda respuesta que no sea un rechazo, también en las preguntas sin respuesta (detecta lo inventado).
+  - Un veredicto ilegible cuenta como "sin juzgar", no como fallo.
+  - Fila "Fidelidad (juez)", lista "Sin respaldo según el juez" y una nota de sesgo cuando el juez y el que responde son el mismo modelo.
 
-- [ ] **086 · Juez de fidelidad (opcional)**
-  - Nuevo `src/docuchat/evaluation/judge.py`. Recibe la respuesta y los chunks que cita, y el LLM devuelve un JSON `{"supported": bool, "unsupported": [frases]}`.
-  - Si el JSON no se puede parsear, cuenta como "sin juzgar", no como fallo.
-  - Métrica nueva "Fidelidad" = respuestas sin afirmaciones sin respaldo / respuestas juzgadas.
-  - Flag `--judge` y ajuste `judge_model`, que por defecto es igual a `llm_model`, con temperatura 0. El informe avisa de que el juez es el mismo modelo que responde (sesgo).
-  - Tests con un `ChatModel` falso.
+- [x] **086 · Repeticiones de la generación** — spec escrita: `tasks/086-repeticiones.md`.
+  - `--runs N`: media, mínimo y máximo de cada métrica, y lista de **preguntas inestables**, las que cambian de resultado entre pasadas.
+  - La recuperación no se repite: es determinista.
 
-- [ ] **H1 · Línea base (humano)**
+- [x] **H1 · Línea base** — hecha el 2026-11-23 (`eval/results-v2-baseline.md`, 3 pasadas + juez).
+  - Criterio cumplido: Hit@1 híbrido **0.643** (chunk 800); Hit@5 0.857.
+  - Híbrido (0.643) < BM25 (0.700) en Hit@1: RRF estropea el primer puesto. Es el objetivo del reranker (fase 9).
+  - `implicita`: Hit@1 **0.000** en híbrido y vector. Es la trampa que medirá el retrieval contextual (fase 11).
+  - Generación determinista: 0 preguntas inestables en 3 pasadas. Palabras clave 0.857, citas 0.958, rechazo correcto 1.000, 9 falsos rechazos (todos por fallos de recuperación: p01, p02, p08, i02, i04, i05, i07, i08, i10).
+  - i03 responde "cada 120 usos" (el dato del K3) a una pregunta sobre el K1, y el juez lo da por respaldado: el juez no detecta que el fragmento sea del producto equivocado.
+  - Fidelidad 0.967: el juez marca f02 y f03 porque el año "2025" no aparece en el fragmento (la cabecera del informe se quita al limpiar los bordes). Es otro caso que el retrieval contextual debería resolver.
+- Pasos originales de H1:
   1. Lee las 80 preguntas: cada una con respuesta tiene que tener **una única** página correcta.
   2. Ejecuta:
      ```bash
@@ -108,34 +112,35 @@ Objetivo: poder medir mejoras. Ahora mismo Hit@5 = 1.000 en las 9 configuracione
 
 Objetivo: reordenar los candidatos de RRF con un cross-encoder. Los datos actuales lo piden: con chunk 800, vector solo (Hit@1 0.938) supera a hybrid (0.906).
 
-- [ ] **H2 · Verificar el reranker en oMLX (humano, antes de 090)**
-  1. Carga en oMLX un modelo reranker: `mlx-community/Qwen3-Reranker-0.6B-4bit`. Si oMLX no lo admite, `bge-reranker-v2-m3` en MLX.
-  2. Prueba el endpoint a mano con tu clave:
+- [x] **H2 · Verificar el reranker en oMLX (humano, antes de 090)** — hecha (2026-11-23, el cerebro). Modelo `Qwen3-Reranker-0.6B-4bit` en `~/models/`, listado por `/v1/models` tras reiniciar oMLX. Respuesta real guardada tal cual en `tests/fixtures/rerank_response.json`: `id` `rerank-3288f8cb`, 2 resultados, garantía 0.983 frente a envío 0.024, 171 tokens, 1.3 s en frío. El esquema coincide con el leído del código. Sustituye a la fixture inventada de la 091; la 091-b ya está hecha y revisada (17 tests del reranker, fixture intacta). Paso 4 hecho en `AGENTS.md` con autorización del humano.
+  El esquema de `/v1/rerank` ya está leído del código de oMLX (`omlx/api/rerank_models.py`, `omlx/server.py`): petición `model`, `query`, `documents`, `instruction` y `return_documents`; respuesta `results[{index, relevance_score}]` ordenada por puntuación. Falta confirmarlo con **tu** servidor y guardar una respuesta real.
+  1. Descarga un reranker en la carpeta de modelos de oMLX: `mlx-community/Qwen3-Reranker-0.6B-4bit`. oMLX admite Qwen3-Reranker (CausalLM sí/no; el nombre de la carpeta tiene que contener "reranker") y cross-encoders XLM-RoBERTa/ModernBERT, como `bge-reranker-v2-m3`, si el Qwen falla.
+  2. Comprueba que aparece y anota su id exacto:
      ```bash
-     curl -s http://127.0.0.1:8000/v1/rerank -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"model":"<modelo>","query":"¿cuánto dura la garantía?","documents":["La garantía es de 2 años.","El envío es gratuito."],"top_n":2}'
+     curl -s http://127.0.0.1:8000/v1/models -H "Authorization: Bearer $OMLX_KEY"
      ```
-  3. Guarda la respuesta real, **sin la clave**, en `tests/fixtures/rerank_response.json`. El cerebro escribe la spec con el esquema real, no con el de la documentación de terceros (regla 5).
-  4. Anota en "Decisiones tomadas" el modelo elegido. Añade `httpx` al Stack de `AGENTS.md`.
+  3. Guarda la respuesta real como fixture. Copia la query y los documentos tal cual, porque el test 11 de la 091 los usa:
+     ```bash
+     curl -s http://127.0.0.1:8000/v1/rerank -H "Authorization: Bearer $OMLX_KEY" -H "Content-Type: application/json" -d '{"model":"<id>","query":"¿Cuánto dura la garantía?","documents":["La garantía es de 2 años.","El envío es gratuito."],"instruction":"Given a question, retrieve passages that answer the question","return_documents":false}' | python3 -m json.tool > tests/fixtures/rerank_response.json
+     ```
+     Comprueba que `results` tiene 2 elementos y que el de `index` 0 puntúa más que el de `index` 1. Si no, prueba con el otro modelo.
+  4. En `AGENTS.md`: anota el id en "Decisiones tomadas" y añade `httpx` al Stack. Si el id no es `Qwen3-Reranker-0.6B-4bit`, la spec 090 ya dice que use el anotado.
 
-- [ ] **090 · Configuración del reranker**
-  - `config.py`: `rerank_enabled: bool = False`, `rerank_base_url` (por defecto el mismo servidor), `rerank_model`, `rerank_candidates: int = 20` (debe ser ≥ `top_k`, con validador).
-  - `pyproject.toml`: `httpx` explícito.
-  - `env_check`: si `rerank_enabled` está activo, comprueba que el modelo aparece en `/v1/models`.
+- [x] **090 · Configuración del reranker** — spec escrita: `tasks/090-config-rerank.md`.
+  - `rerank_enabled` (False), `rerank_base_url`, `rerank_model`, `rerank_candidates` (20, ≥ `top_k`) y `rerank_instruction`.
+  - `httpx` explícito con `uv add`.
+  - `check_env` comprueba el modelo de rerank solo si está activado.
 
-- [ ] **091 · Cliente del reranker**
-  - Nuevo `src/docuchat/retrieval/reranker.py` con:
-    - `Reranker` (Protocol): `rerank(query, texts) -> list[float]`, una puntuación por texto en el mismo orden de entrada.
-    - `HttpReranker` (httpx, timeout y reintentos de `Settings`).
-    - `RerankError`.
-    - `make_reranker(settings)`.
-  - Tests con `httpx.MockTransport` y la fixture real de H2: orden, `top_n`, error HTTP → `RerankError`, lista vacía sin llamada.
+- [x] **091 · Cliente del reranker** — spec escrita: `tasks/091-cliente-reranker.md`.
+  - `retrieval/reranker.py`: `Reranker` (Protocol), `HttpReranker` (httpx), `RerankError` y `make_reranker`.
+  - Reintenta solo errores de conexión; valida índices y puntuaciones.
+  - 15 tests con `httpx.MockTransport`, uno de ellos con la respuesta real de H2.
 
-- [ ] **092 · Rerank en el buscador**
-  - `Searcher` recibe `reranker: Reranker | None`. Con reranker, el flujo es RRF → `drop_adjacent` → los `rerank_candidates` primeros → rerank → `top_k`.
-  - `SearchResult` gana `rerank_score: float | None = None`. `score` sigue siendo el de RRF, y la API lo expone en `result_to_dict`.
-  - **Decisión a fijar en la spec:** si el reranker falla, se recomienda volver al orden RRF con un aviso en el log, no romper la respuesta.
-  - Eval: variante `"rerank": {"rerank_enabled": True}`.
-  - Test: sin reranker, la salida es idéntica a la v1.0.1.
+- [x] **092 · Rerank en el buscador** — spec escrita: `tasks/092-rerank-buscador.md`.
+  - RRF → `drop_adjacent` → los `max(rerank_candidates, top_k)` primeros → rerank estable → `top_k`.
+  - `SearchResult.rerank_score`; `score` sigue siendo el de RRF. La API lo expone.
+  - Si el reranker falla, se vuelve al orden RRF con un aviso en el log.
+  - Variante de evaluación `rerank`.
 
 - [ ] **H3 · Decisión sobre el reranker (humano)**
   - Ejecuta la evaluación con `--variants base,rerank` y compara con la línea base.
@@ -279,9 +284,9 @@ Objetivo: indexar PDF escaneados. Quita la limitación del README de que no hay 
 
 | Riesgo | Dónde | Qué hacer |
 | --- | --- | --- |
-| El esquema de `/v1/rerank` en tu versión de oMLX no es el que dicen terceros | 091 | H2 guarda una respuesta real como fixture antes de la spec |
+| El esquema de `/v1/rerank` en tu versión de oMLX no es el del código leído | 091 | H2 guarda una respuesta real como fixture; el test 11 la usa |
 | El corpus v2 sale igual de fácil | 081 | El criterio de H1 obliga a `081-b` |
-| El juez es el mismo modelo que responde | 086 | Se informa como métrica orientativa; nunca decide una puerta sola |
+| El juez es el mismo modelo que responde | 085 | Se informa como métrica orientativa; nunca decide una puerta sola |
 | La ingesta con contexto es lenta (una llamada al LLM por chunk) | 111–112 | Caché persistente, flag apagado por defecto, progreso por chunk |
 | FTS5 puntúa distinto que `rank-bm25` | 103 | Tolerancia de ±0.03 en H4 |
 | Desincronización entre registro, Chroma y FTS (como en 026-b) | 102 | Un documento solo está "sin cambios" si está en los tres sitios |
@@ -292,8 +297,8 @@ Objetivo: indexar PDF escaneados. Quita la limitación del README de que no hay 
 Unas 21 specs (más las `-b` que salgan) y 7 puertas humanas. Cadenas sugeridas para el obrero:
 
 - 080–082: hechas y aprobadas; queda la corrección de documentación 082-b
-- 083–086
-- 090–092
+- 083–086: hechas; aprobadas con la corrección 084-b (tabla por categoría vía generations y formato del juez)
+- 090–092 (specs escritas; antes, puerta H2)
 - 100–103
 - 110–112
 - 120–121

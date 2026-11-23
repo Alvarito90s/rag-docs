@@ -1,0 +1,1 @@
+{"id":"rerank-3288f8cb","results":[{"index":0,"relevance_score":0.9830850867332734,"document":null},{"index":1,"relevance_score":0.02442309005410721,"document":null}],"model":"Qwen3-Reranker-0.6B-4bit","usage":{"total_tokens":171}}

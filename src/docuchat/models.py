@@ -89,3 +89,4 @@ class SearchResult(BaseModel):
     score: float  # puntuación RRF
     vector_rank: int | None = Field(default=None, ge=1)  # None: no salió en la búsqueda vectorial
     bm25_rank: int | None = Field(default=None, ge=1)  # None: no salió en BM25
+    rerank_score: float | None = None  # None: sin rerank

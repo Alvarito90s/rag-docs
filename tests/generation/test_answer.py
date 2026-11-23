@@ -1,6 +1,7 @@
 """Tests para src/docuchat/generation/answer.py."""
 
 from collections.abc import Iterator, Sequence
+from pathlib import Path
 
 import httpx
 import pytest
@@ -53,12 +54,10 @@ class FakeChat:
 
 
 @pytest.fixture
-def settings() -> Settings:
-    from pathlib import Path
-
+def settings(tmp_path: Path) -> Settings:
     return Settings(
-        documents_dir=Path("tests/fixtures"),
-        data_dir=Path("tests/fixtures/data"),
+        documents_dir=tmp_path / "docs",
+        data_dir=tmp_path / "data",
     )
 
 

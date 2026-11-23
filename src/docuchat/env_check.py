@@ -79,14 +79,21 @@ def run_checks(
     settings: Settings,
     llm_client: OpenAI,
     embedding_client: OpenAI,
+    rerank_client: OpenAI | None = None,
 ) -> list[CheckResult]:
-    """Ejecuta las cuatro comprobaciones en orden."""
-    return [
+    """Ejecuta las cuatro comprobaciones; añade la del reranker si está activado."""
+    results = [
         check_model_listed(llm_client, settings.llm_model, "llm_model"),
         check_model_listed(embedding_client, settings.embedding_model, "embedding_model"),
         check_embedding(embedding_client, settings.embedding_model),
         check_chat(llm_client, settings.llm_model),
     ]
+    if settings.rerank_enabled:
+        if rerank_client is None:
+            results.append(CheckResult("rerank_model", False, "sin cliente de rerank"))
+        else:
+            results.append(check_model_listed(rerank_client, settings.rerank_model, "rerank_model"))
+    return results
 
 
 def format_result(result: CheckResult) -> str:
@@ -102,7 +109,10 @@ def main() -> int:
         print("Aviso: DOCUCHAT_LLM_API_KEY está vacía; ponla en .env.")
     llm_client = make_client(settings.llm_base_url, settings)
     embedding_client = make_client(settings.embedding_base_url, settings)
-    results = run_checks(settings, llm_client, embedding_client)
+    rerank_client: OpenAI | None = None
+    if settings.rerank_enabled:
+        rerank_client = make_client(settings.rerank_base_url, settings)
+    results = run_checks(settings, llm_client, embedding_client, rerank_client)
     for r in results:
         print(format_result(r))
     if all(r.ok for r in results):
