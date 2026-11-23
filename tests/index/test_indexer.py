@@ -346,3 +346,50 @@ def test_13_reset_cambiar_modelo(settings: Settings, tmp_path: Path):
 def test_14_reset_index_carpeta_vacia(settings: Settings):
     # No crear ningún archivo en data_dir
     reset_index(settings)  # No debe lanzar
+
+
+# ── Test 15: Repara chunks faltantes en Chroma ─────────────────────────
+
+
+def test_15_repairs_missing_source(idx: Indexer, docs: Path):
+    # Primera pasada: indexar todo
+    stats1 = idx.index_folder(docs)
+    assert stats1.added == ["a.md", "b.txt"]
+    assert idx.chunk_count() == 3
+
+    # Simular desincronización: borrar a.md del store (no del registry)
+    idx._store.delete_source("a.md")
+
+    # Segunda pasada: debe detectar y reparar
+    stats2 = idx.index_folder(docs)
+
+    assert stats2.updated == ["a.md"]
+    assert stats2.unchanged == ["b.txt"]
+    assert stats2.added == []
+    assert stats2.chunks_added == 2
+    assert idx.chunk_count() == 3
+
+
+# ── Test 16: Repara solo si hay chunks que recuperar (archivo vacío) ──
+
+
+def test_16_repairs_empty_store(idx: Indexer, docs: Path):
+    # Añadir un archivo vacío
+    (docs / "vacio.txt").write_text("")
+
+    # Primera pasada
+    stats1 = idx.index_folder(docs)
+    assert stats1.added == ["a.md", "b.txt", "vacio.txt"]
+    assert idx._registry.get("vacio.txt").chunk_count == 0
+    assert idx.chunk_count() == 3
+
+    # Reset total del store
+    idx._store.reset()
+
+    # Segunda pasada: vacio.txt sigue unchanged (0 chunks), los otros se reparan
+    stats2 = idx.index_folder(docs)
+
+    assert stats2.updated == ["a.md", "b.txt"]
+    assert stats2.unchanged == ["vacio.txt"]
+    assert stats2.added == []
+    assert idx.chunk_count() == 3

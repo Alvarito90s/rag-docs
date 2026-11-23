@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<form id="ask-form">
+  <textarea id="question" name="question" rows="3" required
+            placeholder="Pregunta algo sobre tus documentos…"></textarea>
+  <button id="ask-button" type="submit">Preguntar</button>
+</form>
+{% if chunks == 0 %}
+<p class="warning">El índice está vacío. Ve a <a href="/documents">Documentos</a> e indexa la carpeta.</p>
+{% else %}
+<p class="meta">{{ chunks }} fragmentos indexados · {{ llm_model }}</p>
+{% endif %}
+<section id="result" hidden>
+  <div id="answer" class="answer"></div>
+  <p id="warning" class="warning" hidden></p>
+  <h2 id="sources-title" hidden>Fuentes</h2>
+  <ol id="sources"></ol>
+</section>
+<p id="error" class="error" hidden></p>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', path='app.js') }}"></script>{% endblock %}

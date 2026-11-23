@@ -214,6 +214,36 @@ def test_invalid_generation_values(kwargs: dict) -> None:
 # --- Cache ---
 
 
+# --- API defaults ---
+
+
+def test_api_defaults() -> None:
+    s = Settings()
+    assert s.api_host == "127.0.0.1"
+    assert s.api_port == 8001
+
+
+# --- API env override ---
+
+
+def test_api_env_override(monkeypatch) -> None:
+    monkeypatch.setenv("DOCUCHAT_API_PORT", "9000")
+    s = Settings()
+    assert s.api_port == 9000
+
+
+# --- API validation ---
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"api_port": 0}, {"api_port": 70000}],
+)
+def test_invalid_api_port(kwargs: dict) -> None:
+    with pytest.raises(ValidationError):
+        Settings(**kwargs)
+
+
 def test_get_settings_cached() -> None:
     first = get_settings()
     second = get_settings()

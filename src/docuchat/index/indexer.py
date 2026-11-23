@@ -53,6 +53,9 @@ class Indexer:
         total = len(paths)
         scanned_sources: set[str] = set()
 
+        # Leer fuentes presentes en Chroma (una sola vez al inicio)
+        present = self._store.sources()
+
         added: list[str] = []
         updated: list[str] = []
         unchanged: list[str] = []
@@ -64,8 +67,12 @@ class Indexer:
             sha = file_sha256(path)
             entry = self._registry.get(source)
 
-            # b) Sin cambios → skip
-            if entry is not None and entry.sha256 == sha:
+            # b) Sin cambios → solo si está en el store (o chunk_count == 0)
+            if (
+                entry is not None
+                and entry.sha256 == sha
+                and (entry.chunk_count == 0 or source in present)
+            ):
                 unchanged.append(source)
                 scanned_sources.add(source)
                 if on_progress is not None:

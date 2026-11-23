@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Documentos · DocuChat Local{% endblock %}
+{% block head %}<script src="{{ url_for('static', path='vendor/htmx.min.js') }}" defer></script>{% endblock %}
+{% block content %}
+<h1>Documentos indexados</h1>
+<p class="meta">Carpeta: {{ documents_dir }}</p>
+<div class="actions">
+  <button hx-post="/ui/ingest" hx-target="#job" hx-swap="outerHTML">Actualizar índice</button>
+  <button hx-post="/ui/ingest?reset=true" hx-target="#job" hx-swap="outerHTML"
+          hx-confirm="¿Borrar el índice y reconstruirlo desde cero?">Reconstruir desde cero</button>
+</div>
+{% include "_job.html" %}
+{% if documents %}
+<table>
+  <thead><tr><th>Documento</th><th>Fragmentos</th><th>Indexado</th></tr></thead>
+  <tbody>
+  {% for d in documents %}
+    <tr>
+      <td><a href="{{ d.url }}" target="_blank">{{ d.source }}</a></td>
+      <td>{{ d.chunks }}</td>
+      <td>{{ d.indexed_at }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No hay documentos indexados.</p>
+{% endif %}
+{% endblock %}

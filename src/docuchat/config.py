@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.2, ge=0, le=2)
     llm_thinking: bool = False  # razonamiento de Qwen (más lento); se pasa como enable_thinking
     context_max_chars: int = Field(default=6000, gt=0)  # tope del contexto que se manda al LLM
+    # API web
+    api_host: str = "127.0.0.1"
+    api_port: int = Field(default=8001, gt=0, le=65535)  # 8000 lo usa oMLX
 
     @model_validator(mode="after")
     def _check_search(self) -> "Settings":

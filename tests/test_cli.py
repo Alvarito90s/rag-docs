@@ -627,3 +627,67 @@ def test_34_ask_top_k(search_env: Path) -> None:
 def test_35_format_sources() -> None:
     result = format_sources([Source(1, "a.pdf", 3), Source(4, "b.md", 1)])
     assert result == ["[1] a.pdf, p. 3", "[4] b.md, p. 1"]
+
+
+# ── Test 36: serve ─────────────────────────────────────────────────────
+
+
+def test_36_serve(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """serve --port 9123 → exit 0, uvicorn.run con (127.0.0.1, 9123), salida URL."""
+    import docuchat.cli as cli_mod
+
+    calls: list[tuple[str, int]] = []
+    monkeypatch.setattr("uvicorn.run", lambda app, host, port: calls.append((host, port)))
+
+    for key in list(os.environ):
+        if key.startswith("DOCUCHAT_"):
+            monkeypatch.delenv(key, raising=False)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(cli_mod.app, ["serve", "--port", "9123"])
+    assert result.exit_code == 0
+    assert calls == [("127.0.0.1", 9123)]
+    assert "DocuChat en http://127.0.0.1:9123" in result.output
+
+
+# ── Test 37: serve model mismatch ──────────────────────────────────────
+
+
+def test_37_serve_model_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """serve con DOCUCHAT_EMBEDDING_MODEL=otro → exit 1, 'Reindexa', uvicorn.run no se llama."""
+    import docuchat.cli as cli_mod
+    from docuchat.index import indexer as indexer_mod
+
+    # 1. Limpio entorno y configuro DATA_DIR
+    for key in list(os.environ):
+        if key.startswith("DOCUCHAT_"):
+            monkeypatch.delenv(key, raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DOCUCHAT_DATA_DIR", str(tmp_path / "data"))
+    get_settings.cache_clear()
+
+    # 2. Parcheo build_indexer con FakeEmbedder (evita conectar al servidor real)
+    #    El VectorStore se creará con el modelo POR DEFECTO (env limpio).
+    monkeypatch.setattr(
+        "docuchat.cli.build_indexer",
+        lambda s: indexer_mod.build_indexer(s, embedder=FakeEmbedder()),
+    )
+
+    # 3. Ingest con modelo correcto (por defecto)
+    result = runner.invoke(cli_mod.app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+
+    # 4. Cambio el modelo a "otro" para el serve
+    monkeypatch.setenv("DOCUCHAT_EMBEDDING_MODEL", "otro")
+    get_settings.cache_clear()
+
+    # 5. Serve debe fallar con model mismatch
+    calls: list[tuple] = []
+    monkeypatch.setattr("uvicorn.run", lambda app, host, port: calls.append((host, port)))
+    result = runner.invoke(cli_mod.app, ["serve"])
+    assert result.exit_code == 1
+    assert "Reindexa con --reset" in result.output
+    assert len(calls) == 0

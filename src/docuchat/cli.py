@@ -1,5 +1,6 @@
-"""CLI de DocuChat: comandos `ingest` y `search`."""
+"""CLI de DocuChat: comandos `ingest`, `search`, `ask` y `serve`."""
 
+import sys
 from pathlib import Path
 from typing import Annotated
 
@@ -10,6 +11,7 @@ from rich.markup import escape
 from rich.progress import Progress
 from rich.table import Table
 
+from docuchat.api.app import create_app
 from docuchat.config import get_settings
 from docuchat.generation.answer import build_answerer
 from docuchat.generation.citations import Source
@@ -279,6 +281,34 @@ def ask(
             f"Aviso: citas sin fuente descartadas: {invalid_str}",
             err=True,
         )
+
+
+@app.command()
+def serve(
+    host: Annotated[
+        str | None,
+        typer.Option("--host", help="Por defecto DOCUCHAT_API_HOST."),
+    ] = None,
+    port: Annotated[
+        int | None,
+        typer.Option("--port", help="Por defecto DOCUCHAT_API_PORT."),
+    ] = None,
+) -> None:
+    """Arranca la app web."""
+    import uvicorn
+
+    settings = get_settings()
+    h = host or settings.api_host
+    p = port or settings.api_port
+
+    try:
+        app = create_app(settings)
+    except EmbeddingModelMismatchError as e:
+        print(str(e), file=sys.stderr)
+        raise typer.Exit(code=1) from None
+
+    typer.echo(f"DocuChat en http://{h}:{p}")
+    uvicorn.run(app, host=h, port=p)
 
 
 if __name__ == "__main__":

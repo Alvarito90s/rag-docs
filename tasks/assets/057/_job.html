@@ -1,0 +1,13 @@
+{% if message %}
+<div id="job" class="job error">{{ message }}</div>
+{% elif job is none %}
+<div id="job"></div>
+{% elif job.status == "running" %}
+<div id="job" class="job" hx-get="/ui/ingest/{{ job.id }}" hx-trigger="every 1s" hx-swap="outerHTML">
+  Indexando {{ job.done }}/{{ job.total }}{% if job.current %}: {{ job.current }}{% endif %}…
+</div>
+{% elif job.status == "done" %}
+<div id="job" class="job ok">Ingesta terminada: {{ job.stats.added }} añadidos, {{ job.stats.updated }} actualizados, {{ job.stats.unchanged }} sin cambios, {{ job.stats.removed }} eliminados, {{ job.stats.errors }} con errores.</div>
+{% else %}
+<div id="job" class="job error">La ingesta falló: {{ job.error }}</div>
+{% endif %}
