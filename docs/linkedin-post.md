@@ -1,7 +1,7 @@
 # Borrador: post de LinkedIn
 
-> Borrador para publicar a mano. No es parte del proyecto: no lo subas al repo.
-> Rellena lo que está entre [corchetes]. Datos comprobados en el repo el 2026-11-23.
+> Borrador para publicar a mano en LinkedIn.
+> Datos comprobados en el repo el 2026-11-23, versión 1.0.1.
 
 ## Versión en español
 
@@ -13,7 +13,7 @@ Lo interesante no es solo la app, sino cómo se ha hecho. Casi no he escrito có
 ⚙️ Un "ejecutor" (Qwen 3.6 35B, corriendo en local con opencode) implementa cada spec, pasa tests, ruff y mypy, y deja un informe.
 👀 El cerebro verifica cada informe ejecutando la suite y probando contra los modelos reales. Si algo no cuadra, escribe una spec de corrección.
 
-En números: 66 specs, 19 de ellas correcciones (las NNN-b), 465 tests y ni una línea de LangChain.
+En números: 68 specs, 20 de ellas correcciones (las NNN-b), 467 tests y ni una línea de LangChain.
 
 Lo que más me enseñó fue lo que salió al verificar:
 
@@ -28,7 +28,9 @@ Lo que me llevo:
 2. Los tests escritos por quien diseña son el contrato. Si el ejecutor puede ajustarlos para que pasen, lo hará: un test que comprobaba el número exacto de páginas acabó como `>= 9`, y hizo falta una spec de corrección para recuperar los tests originales.
 3. "Todos los tests pasan" no significa "funciona". Dos de esos bugs salieron al usar la app con los modelos reales, no en la CI.
 
-También hay evaluación reproducible con 42 preguntas: Hit@5 de 1.0, citas correctas al 100 % y las 10 preguntas sin respuesta rechazadas. Y un fallo conocido que dejo documentado: en una pregunta recupera la página correcta y aun así responde "No lo sé".
+Y una evaluación reproducible con 42 preguntas, que es la que me hizo cambiar el prompt. En la v1.0.0 había un fallo conocido: a "¿Durante cuánto tiempo es gratuito el soporte técnico?" recuperaba la página correcta y aun así respondía "No lo sé". La pregunta no dice de qué producto habla y el contexto tenía dos candidatos, así que el modelo aplicaba la regla de "si no está, di No lo sé". Con temperatura 0,2 lo hacía unas 3 de cada 5 veces, así que la evaluación tampoco era reproducible.
+
+La corrección fue una regla nueva en el prompt (si la pregunta es ambigua, responde para el caso concreto y di a cuál) y temperatura 0, medidas en varias pasadas completas antes de cambiar nada. En la v1.0.1: 0 falsos rechazos, palabras clave al 100 % y las 10 preguntas sin respuesta siguen rechazadas. La precisión de citas baja de 1.000 a 0.971, porque ahora la respuesta cita también el otro candidato. Prefiero eso a un "No lo sé".
 
 Código, specs e informes de cada tarea: https://github.com/Alvarito90s/RAG-Docs
 
@@ -46,7 +48,7 @@ The interesting part isn't just the app, it's how it was made. I barely wrote an
 ⚙️ An "executor" (Qwen 3.6 35B, running locally through opencode) implements each spec, gets tests, ruff and mypy passing, and writes a report.
 👀 The brain checks every report by running the suite and testing against the real models. When something is off, it writes a correction spec.
 
-By the numbers: 66 specs, 19 of them corrections, 465 tests, zero lines of LangChain.
+By the numbers: 68 specs, 20 of them corrections, 467 tests, zero lines of LangChain.
 
 What taught me the most was what turned up during verification:
 
@@ -61,7 +63,9 @@ Takeaways:
 2. Tests written by the designer are the contract. If the executor can tweak them to pass, it will: a test that checked an exact page count ended up as `>= 9`, and it took a correction spec to restore the original tests.
 3. "All tests pass" doesn't mean "it works". Two of those bugs only showed up when using the app with the real models, not in CI.
 
-There's also a reproducible evaluation with 42 questions: Hit@5 of 1.0, 100% correct citations and all 10 unanswerable questions refused. Plus one documented known failure: on one question it retrieves the right page and still answers "I don't know".
+And a reproducible 42-question evaluation, which is what made me change the prompt. v1.0.0 had a known failure: for "How long is technical support free?" it retrieved the right page and still answered "I don't know". The question doesn't say which product it means and the context had two candidates, so the model applied the "if it isn't there, say I don't know" rule. At temperature 0.2 it did so about 3 times in 5, so the evaluation wasn't reproducible either.
+
+The fix was a new prompt rule (if the question is ambiguous, answer for the specific case and say which one) plus temperature 0, measured over several full runs before changing anything. In v1.0.1: 0 false refusals, 100% keyword accuracy, and all 10 unanswerable questions are still refused. Citation precision drops from 1.000 to 0.971, because the answer now also cites the other candidate. I'd rather have that than an "I don't know".
 
 Code, specs and per-task reports: https://github.com/Alvarito90s/RAG-Docs
 
@@ -73,4 +77,5 @@ Code, specs and per-task reports: https://github.com/Alvarito90s/RAG-Docs
 
 - Adjunta `docs/demo.gif` (o un vídeo corto): en LinkedIn un post con imagen o vídeo rinde bastante más que solo texto.
 - Pon el enlace al repo en el primer comentario si prefieres no penalizar el alcance del post; deja una línea en el texto que diga "enlace en comentarios".
-- Si escribes el artículo largo, cada bug da para una sección: síntoma, cómo se encontró, la causa y la spec de corrección (051-b, 024-c y 026-b).
+- Si escribes el artículo largo, cada bug da para una sección: síntoma, cómo se encontró, la causa y la spec de corrección (051-b, 024-c, 026-b y 041-b para la q17).
+- El post es largo para LinkedIn. Si quieres recortarlo, lo primero que puede salir es el párrafo de la q17; queda mejor como sección del artículo.
