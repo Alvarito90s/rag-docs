@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from docuchat.models import Chunk, DocType, Document, Page, make_chunk_id
+from docuchat.models import Chunk, DocType, Document, Page, SearchResult, make_chunk_id
 
 SHA = "a" * 64
 
@@ -159,3 +159,49 @@ def test_chunk_invalid(kwargs: dict) -> None:
     base.update(kwargs)
     with pytest.raises(ValidationError):
         Chunk(**base)
+
+
+# --- SearchResult ---
+
+
+@pytest.fixture()
+def valid_chunk() -> Chunk:
+    return Chunk(
+        chunk_id="a.pdf#p1#c0",
+        source="a.pdf",
+        doc_sha256=SHA,
+        page=1,
+        position=0,
+        text="hola",
+    )
+
+
+def test_search_result_valid(valid_chunk: Chunk) -> None:
+    result = SearchResult(chunk=valid_chunk, rank=1, score=0.0328)
+    assert result.vector_rank is None
+    assert result.bm25_rank is None
+    assert result.chunk.chunk_id == "a.pdf#p1#c0"
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"rank": 0}, {"vector_rank": 0}],
+)
+def test_search_result_invalid(kwargs: dict) -> None:
+    base = {
+        "chunk": Chunk(
+            chunk_id="a.pdf#p1#c0",
+            source="a.pdf",
+            doc_sha256=SHA,
+            page=1,
+            position=0,
+            text="hola",
+        ),
+        "rank": 1,
+        "score": 0.0328,
+        "vector_rank": None,
+        "bm25_rank": None,
+    }
+    base.update(kwargs)
+    with pytest.raises(ValidationError):
+        SearchResult(**base)

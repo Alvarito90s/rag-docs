@@ -97,6 +97,26 @@ class VectorStore:
         self._client.delete_collection(self._name)
         self._collection = self._open_collection()
 
+    def query(self, embedding: Sequence[float], k: int) -> list[tuple[Chunk, float]]:
+        """Los k chunks más cercanos con su similitud coseno (1 - distancia),
+        de mayor a menor."""
+        if k <= 0 or self.count() == 0:
+            return []
+        n = min(k, self.count())
+        result = self._collection.query(
+            query_embeddings=[list(embedding)],  # type: ignore[arg-type]
+            n_results=n,
+            include=["documents", "metadatas", "distances"],
+        )
+        ids = result["ids"][0]
+        docs = (result["documents"][0] if result["documents"] else []) or []
+        metadatas = (result["metadatas"][0] if result["metadatas"] else []) or []
+        distances = (result["distances"][0] if result["distances"] else []) or []
+        return [
+            (chunk_from_record(cid, doc, meta), 1.0 - float(dist))
+            for cid, doc, meta, dist in zip(ids, docs, metadatas, distances, strict=True)
+        ]
+
 
 def chunk_to_metadata(chunk: Chunk) -> Metadata:
     """Convierte un Chunk en metadatos de Chroma (heading → "" si None)."""

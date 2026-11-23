@@ -33,6 +33,18 @@ class Settings(BaseSettings):
     embedding_batch_size: int = Field(default=32, gt=0)
     request_max_retries: int = Field(default=3, ge=0)
     chroma_collection: str = "chunks"
+    # Búsqueda
+    top_k: int = Field(default=5, gt=0)  # resultados que se devuelven
+    candidate_k: int = Field(default=20, gt=0)  # candidatos por buscador antes de fusionar
+    rrf_k: int = Field(default=60, gt=0)
+    query_instruction: str = "Given a question, retrieve passages that answer the question"
+
+    @model_validator(mode="after")
+    def _check_search(self) -> "Settings":
+        """Rechaza candidate_k menor que top_k."""
+        if self.candidate_k < self.top_k:
+            raise ValueError("candidate_k debe ser mayor o igual que top_k")
+        return self
 
     @property
     def chroma_dir(self) -> Path:

@@ -1,4 +1,4 @@
-"""CLI de DocuChat: comando `ingest` con Rich."""
+"""CLI de DocuChat: comandos `ingest` y `search`."""
 
 from pathlib import Path
 from typing import Annotated
@@ -19,6 +19,8 @@ from docuchat.index.indexer import (
 )
 from docuchat.index.vector_store import EmbeddingModelMismatchError
 from docuchat.ingest.scanner import IngestResult, load_folder
+from docuchat.models import SearchResult
+from docuchat.retrieval.searcher import SearchMode, build_searcher
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -138,6 +140,76 @@ def ingest(
         typer.echo(f"ERROR {source}: {mensaje}", err=True)
     if stats.errors:
         raise typer.Exit(code=1)
+
+
+def snippet(text: str, width: int = 150) -> str:
+    """Texto en una línea (espacios colapsados), cortado a width caracteres con '…'."""
+    plano = " ".join(text.split())
+    if len(plano) <= width:
+        return plano
+    return plano[:width].rstrip() + "…"
+
+
+def format_result(result: SearchResult) -> str:
+    """Dos líneas: cabecera con puesto, documento, página y puntuaciones, y el fragmento."""
+    v_rank = f"{result.vector_rank}" if result.vector_rank is not None else "-"
+    b_rank = f"{result.bm25_rank}" if result.bm25_rank is not None else "-"
+    header = (
+        f"[{result.rank}] {result.chunk.source} · p. {result.chunk.page} "
+        f"· {result.score:.4f} (vec {v_rank}, bm25 {b_rank})"
+    )
+    return f"{header}\n    {snippet(result.chunk.text)}"
+
+
+@app.command()
+def search(
+    query: Annotated[str, typer.Argument(help="Texto a buscar.")],
+    top_k: Annotated[
+        int | None,
+        typer.Option("--top-k", "-k", help="Número de resultados (por defecto DOCUCHAT_TOP_K)."),
+    ] = None,
+    mode: Annotated[
+        SearchMode,
+        typer.Option("--mode", help="hybrid, vector o bm25."),
+    ] = SearchMode.HYBRID,
+) -> None:
+    """Busca en los documentos indexados."""
+    # a. Validar top_k
+    settings = get_settings()
+    k = top_k if top_k is not None else settings.top_k
+    if k <= 0:
+        typer.echo("--top-k debe ser positivo", err=True)
+        raise typer.Exit(code=1)
+
+    # b. Construir searcher
+    try:
+        searcher = build_searcher(settings)
+    except EmbeddingModelMismatchError as e:
+        typer.echo(str(e), err=True)
+        raise typer.Exit(code=1) from None
+
+    # c. Índice vacío
+    if searcher.size() == 0:
+        typer.echo("El índice está vacío. Ejecuta: docuchat ingest", err=True)
+        raise typer.Exit(code=1)
+
+    # d. Buscar
+    try:
+        results = searcher.search(query, k, mode)
+    except (OpenAIError, EmbeddingError) as e:
+        typer.echo(f"Error con el servidor de embeddings: {type(e).__name__}: {e}", err=True)
+        raise typer.Exit(code=1) from None
+
+    # e. Sin resultados
+    if not results:
+        typer.echo("Sin resultados.")
+        return
+
+    # f. Mostrar resultados
+    for i, result in enumerate(results):
+        typer.echo(format_result(result))
+        if i < len(results) - 1:
+            typer.echo()
 
 
 if __name__ == "__main__":

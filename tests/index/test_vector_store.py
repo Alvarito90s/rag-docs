@@ -167,3 +167,72 @@ def test_add_batches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     chunks = [make_chunk("a.pdf", i + 1, 0, f"texto {i}") for i in range(5)]
     vs.add(chunks, make_embeddings(chunks))
     assert vs.count() == 5
+
+
+# 12–16. query vectorial (spec 032)
+QVECS = [
+    [1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0],
+    [0.7071, 0.7071, 0.0],
+]
+
+
+def test_query_top_k(tmp_path: Path) -> None:
+    """12. Los 2 más cercanos a [1,0,0]: ids correctos, similitud ~[1.0, 0.7071]."""
+    vs = VectorStore(tmp_path, "test", "m1")
+    chunks = [
+        make_chunk("a.pdf", 1, 0, "uno"),
+        make_chunk("a.pdf", 1, 1, "dos"),
+        make_chunk("b.md", 1, 0, "tres"),
+    ]
+    vs.add(chunks, QVECS)
+    results = vs.query([1.0, 0.0, 0.0], 2)
+    assert len(results) == 2
+    assert [c.chunk_id for c, _ in results] == ["a.pdf#p1#c0", "b.md#p1#c0"]
+    assert results[0][1] == pytest.approx(1.0, abs=1e-3)
+    assert results[1][1] == pytest.approx(0.7071, abs=1e-3)
+
+
+def test_query_k_larger_than_store(tmp_path: Path) -> None:
+    """13. k=10 con 3 chunks → devuelve 3; el último es 'a.pdf#p1#c1'."""
+    vs = VectorStore(tmp_path, "test", "m1")
+    chunks = [
+        make_chunk("a.pdf", 1, 0, "uno"),
+        make_chunk("a.pdf", 1, 1, "dos"),
+        make_chunk("b.md", 1, 0, "tres"),
+    ]
+    vs.add(chunks, QVECS)
+    results = vs.query([1.0, 0.0, 0.0], 10)
+    assert len(results) == 3
+    assert results[-1][0].chunk_id == "a.pdf#p1#c1"
+
+
+def test_query_chunk_equals_original(tmp_path: Path) -> None:
+    """14. El chunk devuelto es igual al original."""
+    vs = VectorStore(tmp_path, "test", "m1")
+    chunks = [
+        make_chunk("a.pdf", 1, 0, "uno"),
+        make_chunk("a.pdf", 1, 1, "dos"),
+        make_chunk("b.md", 1, 0, "tres"),
+    ]
+    vs.add(chunks, QVECS)
+    chunk, _ = vs.query([0.0, 1.0, 0.0], 1)[0]
+    assert chunk == chunks[1]
+
+
+def test_query_k_zero(tmp_path: Path) -> None:
+    """15. k=0 con la colección llena → [] vacía."""
+    vs = VectorStore(tmp_path, "test", "m1")
+    chunks = [
+        make_chunk("a.pdf", 1, 0, "uno"),
+        make_chunk("a.pdf", 1, 1, "dos"),
+        make_chunk("b.md", 1, 0, "tres"),
+    ]
+    vs.add(chunks, QVECS)
+    assert vs.query([1.0, 0.0, 0.0], 0) == []
+
+
+def test_query_empty_store(tmp_path: Path) -> None:
+    """16. Store vacío → query devuelve [] sin llamar a Chroma."""
+    vs = VectorStore(tmp_path, "test", "m1")
+    assert vs.query([1.0, 0.0, 0.0], 5) == []

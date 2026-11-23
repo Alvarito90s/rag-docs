@@ -77,3 +77,15 @@ class Document(BaseModel):
             if self.pages[i].number <= self.pages[i - 1].number:
                 raise ValueError("los números de página deben ser estrictamente crecientes")
         return self
+
+
+class SearchResult(BaseModel):
+    """Un chunk recuperado, con su puesto final y su puesto en cada buscador."""
+
+    model_config = ConfigDict(frozen=True)
+
+    chunk: Chunk
+    rank: int = Field(ge=1)  # puesto final, desde 1
+    score: float  # puntuación RRF
+    vector_rank: int | None = Field(default=None, ge=1)  # None: no salió en la búsqueda vectorial
+    bm25_rank: int | None = Field(default=None, ge=1)  # None: no salió en BM25

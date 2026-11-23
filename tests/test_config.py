@@ -132,6 +132,49 @@ def test_invalid_index_values(kwargs: dict) -> None:
 # --- Cache ---
 
 
+# --- Search defaults ---
+
+
+def test_search_defaults() -> None:
+    s = Settings()
+    assert s.top_k == 5
+    assert s.candidate_k == 20
+    assert s.rrf_k == 60
+    assert s.query_instruction == "Given a question, retrieve passages that answer the question"
+
+
+# --- Search env override ---
+
+
+def test_search_env_override(monkeypatch) -> None:
+    monkeypatch.setenv("DOCUCHAT_TOP_K", "3")
+    monkeypatch.setenv("DOCUCHAT_QUERY_INSTRUCTION", "")
+    s = Settings()
+    assert s.top_k == 3
+    assert s.query_instruction == ""
+
+
+# --- Search validation ---
+
+
+def test_candidate_k_not_smaller_than_top_k() -> None:
+    with pytest.raises(ValidationError):
+        Settings(top_k=10, candidate_k=5)
+    Settings(top_k=10, candidate_k=10)  # igual es válido
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"top_k": 0}, {"candidate_k": 0}, {"rrf_k": 0}],
+)
+def test_invalid_search_values(kwargs: dict) -> None:
+    with pytest.raises(ValidationError):
+        Settings(**kwargs)
+
+
+# --- Cache ---
+
+
 def test_get_settings_cached() -> None:
     first = get_settings()
     second = get_settings()

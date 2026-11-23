@@ -9,12 +9,13 @@ import pytest
 from openai import APIConnectionError
 from typer.testing import CliRunner
 
-from docuchat.cli import app, build_table, stats_line, summary_line
+from docuchat.cli import app, build_table, format_result, snippet, stats_line, summary_line
 from docuchat.config import get_settings
 from docuchat.index import indexer as indexer_mod
 from docuchat.index.indexer import IndexStats
 from docuchat.ingest.scanner import IngestResult
 from docuchat.models import DocType, Document, Page
+from docuchat.retrieval import searcher as searcher_mod
 
 SAMPLES = Path(__file__).resolve().parents[1] / "samples"
 runner = CliRunner()
@@ -193,11 +194,22 @@ def test_12_model_mismatch(index_env: Path, monkeypatch: pytest.MonkeyPatch) -> 
 # ── Test 13: embedding error ───────────────────────────────────────────
 
 
-def test_13_embedding_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "docuchat.cli.build_indexer",
-        lambda s: indexer_mod.build_indexer(s, embedder=FakeEmbedder(fail_on="")),
-    )
+def test_13_embedding_error(cli_env: Path) -> None:
+    """Parchea build_indexer con un FakeEmbedder que falla siempre."""
+    from docuchat.index import indexer as indexer_mod
+
+    class FailingEmbedder:
+        def embed(self, texts):
+            raise APIConnectionError(request=__import__("httpx").Request("POST", "http://test"))
+
+    # Patch build_indexer con embedder que siempre falla
+    import docuchat.cli as cli_mod
+
+    def failing_bi(s):
+        return indexer_mod.build_indexer(s, embedder=FailingEmbedder())
+
+    cli_mod.build_indexer = failing_bi
+
     result = runner.invoke(app, ["ingest", str(SAMPLES)])
     assert result.exit_code == 1
     assert "Error con el servidor de embeddings: APIConnectionError" in result.output
@@ -251,3 +263,183 @@ def test_16_dry_run_ignores_reset(index_env: Path) -> None:
 def test_17_stats_line() -> None:
     s = stats_line(IndexStats(added=["a"], unchanged=["b", "c"], errors=[("d", "x")]))
     assert s == "1 añadidos, 0 actualizados, 2 sin cambios, 0 eliminados, 1 con errores"
+
+
+# ── Fixture search_env ─────────────────────────────────────────────────
+
+
+@pytest.fixture()
+def search_env(index_env: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """index_env + build_searcher con FakeEmbedder."""
+    monkeypatch.setattr(
+        "docuchat.cli.build_searcher",
+        lambda s: searcher_mod.build_searcher(s, embedder=FakeEmbedder()),
+    )
+    return index_env
+
+
+# ── Fixture cli_env ────────────────────────────────────────────────────
+# Patchea build_indexer Y build_searcher para tests que invocan ingest + search
+# sin fixtures intermedios.
+
+
+@pytest.fixture()
+def cli_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[Path]:
+    """Limpia env y patchea build_indexer + build_searcher con FakeEmbedder."""
+    for key in list(os.environ):
+        if key.startswith("DOCUCHAT_"):
+            monkeypatch.delenv(key, raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DOCUCHAT_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setattr(
+        "docuchat.cli.build_indexer",
+        lambda s: indexer_mod.build_indexer(s, embedder=FakeEmbedder()),
+    )
+    monkeypatch.setattr(
+        "docuchat.cli.build_searcher",
+        lambda s, embedder=None: searcher_mod.build_searcher(s, embedder=FakeEmbedder()),
+    )
+    get_settings.cache_clear()
+    yield tmp_path / "data"
+    get_settings.cache_clear()
+
+
+# ── Test 18: search bm25 ───────────────────────────────────────────────
+
+
+def test_18_search_bm25(cli_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    result = runner.invoke(app, ["search", "E-17", "--mode", "bm25"])
+    assert result.exit_code == 0
+    assert "[1] manual_cafetera.pdf · p. 7 · " in result.output
+    assert "código de error E-17" in result.output
+
+
+# ── Test 19: search top_k ──────────────────────────────────────────────
+
+
+def test_19_search_top_k(cli_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    result = runner.invoke(app, ["search", "SKU-4471-B", "-k", "1", "--mode", "bm25"])
+    assert result.exit_code == 0
+    assert "[1] glosario_interno.md · p. 1" in result.output
+    assert "(vec -, bm25 1)" in result.output
+    assert "[2]" not in result.output
+
+
+# ── Test 20: search hybrid default k ───────────────────────────────────
+
+
+def test_20_search_hybrid_default_k(cli_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    result = runner.invoke(app, ["search", "garantía de la cafetera"])
+    assert result.exit_code == 0
+    assert "[5] " in result.output
+    assert "[6] " not in result.output
+
+
+# ── Test 21: search no results ─────────────────────────────────────────
+
+
+def test_21_search_no_results(cli_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    result = runner.invoke(app, ["search", "zzzz", "--mode", "bm25"])
+    assert result.exit_code == 0
+    assert "Sin resultados." in result.output
+
+
+# ── Test 22: search invalid mode ───────────────────────────────────────
+
+
+def test_22_search_invalid_mode() -> None:
+    result = runner.invoke(app, ["search", "hola", "--mode", "otro"])
+    assert result.exit_code == 2
+
+
+# ── Test 23: search embedding error ────────────────────────────────────
+
+
+def test_23_search_embedding_error(cli_env: Path) -> None:
+    """cli_env: indexa documentos y luego fuerza error de embedding en search."""
+    import docuchat.retrieval.searcher as searcher_mod
+
+    # Patch Searcher.search al nivel de la clase (afecta a todas las instancias)
+    orig_search = searcher_mod.Searcher.search
+
+    def failing_search(self, *args, **kwargs):
+        raise APIConnectionError(request=__import__("httpx").Request("POST", "http://test"))
+
+    searcher_mod.Searcher.search = failing_search
+
+    try:
+        # Primero indexar documentos
+        result = runner.invoke(app, ["ingest", str(SAMPLES)])
+        assert result.exit_code == 0
+        # Luego buscar (debería fallar por embedding error)
+        result = runner.invoke(app, ["search", "hola", "--mode", "bm25"])
+        assert result.exit_code == 1
+        assert "Error con el servidor de embeddings: APIConnectionError" in result.output
+        assert isinstance(result.exception, SystemExit)
+    finally:
+        searcher_mod.Searcher.search = orig_search
+
+
+# ── Test 24: search empty index ────────────────────────────────────────
+
+
+def test_24_search_empty_index(search_env: Path) -> None:
+    result = runner.invoke(app, ["search", "hola"])
+    assert result.exit_code == 1
+    assert "El índice está vacío" in result.output
+
+
+# ── Test 25: search model mismatch ─────────────────────────────────────
+
+
+def test_25_search_model_mismatch(search_env: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    monkeypatch.setenv("DOCUCHAT_EMBEDDING_MODEL", "otro")
+    get_settings.cache_clear()
+    result = runner.invoke(app, ["search", "hola"])
+    assert result.exit_code == 1
+    assert "Reindexa con --reset" in result.output
+
+
+# ── Test 26: format_result ─────────────────────────────────────────────
+
+
+def test_26_format_result() -> None:
+    from docuchat.models import Chunk, SearchResult
+
+    chunk = Chunk(
+        chunk_id="a.pdf#p3#c0",
+        source="a.pdf",
+        doc_sha256="a" * 64,
+        page=3,
+        position=0,
+        text="  Hola\n\nmundo  ",
+    )
+    result = SearchResult(
+        chunk=chunk,
+        rank=2,
+        score=0.0327869,
+        vector_rank=None,
+        bm25_rank=1,
+    )
+    assert format_result(result) == "[2] a.pdf · p. 3 · 0.0328 (vec -, bm25 1)\n    Hola mundo"
+
+
+# ── Test 27: snippet ───────────────────────────────────────────────────
+
+
+def test_27_snippet() -> None:
+    assert len(snippet("a " * 100)) == 150
+    assert snippet("a " * 100).endswith("a…")
+    assert snippet("corto") == "corto"
+    assert snippet("abc def", width=4) == "abc…"
+    assert snippet("abc def", width=5) == "abc d…"
