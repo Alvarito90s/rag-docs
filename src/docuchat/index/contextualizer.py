@@ -2,10 +2,12 @@
 
 import hashlib
 import logging
+import re
 import sqlite3
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from pathlib import Path
+from typing import Protocol
 
 from openai import OpenAIError
 
@@ -36,6 +38,51 @@ Escribe una o dos frases breves que sitúen el fragmento dentro del documento: d
 def document_head(doc: Document, chars: int) -> str:
     """Los primeros chars caracteres de las páginas unidas con "\\n\\n"."""
     return "\n\n".join(p.text for p in doc.pages)[:chars]
+
+
+class ChunkContextualizer(Protocol):
+    """Lo que el Indexer necesita de un contextualizador."""
+
+    @property
+    def llm_calls(self) -> int: ...
+
+    def context_for(self, doc: Document, chunk: Chunk) -> str: ...
+
+
+def first_sentence(text: str, max_chars: int) -> str:
+    """Primera frase de text con los espacios normalizados, recortada a max_chars."""
+    t = " ".join(text.split())
+    if not t:
+        return ""
+    primera = re.split(r"(?<=[.!?])\s", t, maxsplit=1)[0]
+    return primera[:max_chars].rstrip()
+
+
+class MetaContextualizer:
+    """Contexto sin LLM: nombre del documento y su primera frase."""
+
+    def __init__(self, *, head_chars: int, max_chars: int) -> None:
+        self._head_chars = head_chars
+        self._max_chars = max_chars
+
+    @property
+    def llm_calls(self) -> int:
+        """Siempre 0."""
+        return 0
+
+    def context_for(self, doc: Document, chunk: Chunk) -> str:
+        frase = first_sentence(document_head(doc, self._head_chars), self._max_chars)
+        if frase:
+            return f"Documento «{doc.source}». {frase}"
+        return f"Documento «{doc.source}»."
+
+
+def make_meta_contextualizer(settings: Settings) -> MetaContextualizer:
+    """Crea un MetaContextualizer con los parámetros de settings."""
+    return MetaContextualizer(
+        head_chars=settings.contextual_meta_head_chars,
+        max_chars=settings.contextual_meta_max_chars,
+    )
 
 
 def build_context_prompt(

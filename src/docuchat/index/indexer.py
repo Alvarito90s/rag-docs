@@ -10,7 +10,11 @@ from chromadb.config import Settings as ChromaSettings
 
 from docuchat.config import Settings
 from docuchat.index.chunker import chunk_document
-from docuchat.index.contextualizer import Contextualizer, make_contextualizer
+from docuchat.index.contextualizer import (
+    ChunkContextualizer,
+    make_contextualizer,
+    make_meta_contextualizer,
+)
 from docuchat.index.embeddings import Embedder, make_embedder
 from docuchat.index.fts import FtsIndex
 from docuchat.index.registry import Registry
@@ -60,7 +64,7 @@ class Indexer:
         chunk_size: int,
         chunk_overlap: int,
         fts: FtsIndex | None = None,
-        contextualizer: Contextualizer | None = None,
+        contextualizer: ChunkContextualizer | None = None,
     ) -> None:
         self._store = store
         self._registry = registry
@@ -201,7 +205,13 @@ def build_indexer(settings: Settings, embedder: Embedder | None = None) -> Index
     fts = FtsIndex(settings.fts_path)
     if embedder is None:
         embedder = make_embedder(settings)
-    contextualizer = make_contextualizer(settings) if settings.contextual_enabled else None
+    contextualizer: ChunkContextualizer | None
+    if settings.contextual_enabled:
+        contextualizer = make_contextualizer(settings)
+    elif settings.contextual_meta_enabled:
+        contextualizer = make_meta_contextualizer(settings)
+    else:
+        contextualizer = None
     return Indexer(
         store=store,
         registry=registry,

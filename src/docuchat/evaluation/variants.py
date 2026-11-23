@@ -4,6 +4,7 @@ from docuchat.config import Settings
 
 VARIANTS: dict[str, dict[str, object]] = {
     "base": {},
+    "sin_contexto": {"contextual_meta_enabled": False},
     "rerank": {"rerank_enabled": True},
     "sin_rerank": {"rerank_enabled": False},
     "contextual": {"contextual_enabled": True},

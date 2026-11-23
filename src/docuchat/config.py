@@ -44,7 +44,10 @@ class Settings(BaseSettings):
     rerank_model: str = "Qwen3-Reranker-0.6B-4bit"
     rerank_candidates: int = Field(default=10, gt=0)  # candidatos de RRF que se reordenan
     rerank_instruction: str = "Given a question, retrieve passages that answer the question"
-    # Retrieval contextual (fase 11; apagado por defecto)
+    # Retrieval contextual (fase 11): metadatos por defecto; LLM opcional
+    contextual_meta_enabled: bool = True  # "Documento «fuente». Primera frase."
+    contextual_meta_head_chars: int = Field(default=400, gt=0)  # dónde buscar la primera frase
+    contextual_meta_max_chars: int = Field(default=200, gt=0)  # recorte de la primera frase
     contextual_enabled: bool = False
     contextual_model: str = ""  # vacío = llm_model
     contextual_head_chars: int = Field(default=1500, gt=0)  # principio del documento
