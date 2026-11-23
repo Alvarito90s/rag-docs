@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     candidate_k: int = Field(default=20, gt=0)  # candidatos por buscador antes de fusionar
     rrf_k: int = Field(default=60, gt=0)
     query_instruction: str = "Given a question, retrieve passages that answer the question"
+    # Generación
+    llm_max_tokens: int = Field(default=1024, gt=0)
+    llm_temperature: float = Field(default=0.2, ge=0, le=2)
+    llm_thinking: bool = False  # razonamiento de Qwen (más lento); se pasa como enable_thinking
+    context_max_chars: int = Field(default=6000, gt=0)  # tope del contexto que se manda al LLM
 
     @model_validator(mode="after")
     def _check_search(self) -> "Settings":

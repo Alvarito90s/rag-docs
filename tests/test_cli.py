@@ -9,8 +9,19 @@ import pytest
 from openai import APIConnectionError
 from typer.testing import CliRunner
 
-from docuchat.cli import app, build_table, format_result, snippet, stats_line, summary_line
+from docuchat.cli import (
+    app,
+    build_table,
+    format_result,
+    format_sources,
+    snippet,
+    stats_line,
+    summary_line,
+)
 from docuchat.config import get_settings
+from docuchat.generation import answer as answer_mod
+from docuchat.generation.citations import Source
+from docuchat.generation.prompts import NO_ANSWER
 from docuchat.index import indexer as indexer_mod
 from docuchat.index.indexer import IndexStats
 from docuchat.ingest.scanner import IngestResult
@@ -443,3 +454,176 @@ def test_27_snippet() -> None:
     assert snippet("corto") == "corto"
     assert snippet("abc def", width=4) == "abc…"
     assert snippet("abc def", width=5) == "abc d…"
+
+
+# ── FakeChat (copia de tests/generation/test_answer.py) ─────────────────
+
+
+class FakeChat:
+    def __init__(self, pieces: list[str], fail: bool = False) -> None:
+        self.pieces = pieces
+        self.fail = fail
+        self.calls: list[list] = []
+
+    def stream(self, messages):
+        self.calls.append(list(messages))
+        if self.fail:
+            raise APIConnectionError(request=__import__("httpx").Request("POST", "http://test"))
+        yield from self.pieces
+
+
+# ── Test 28: ask que responde ──────────────────────────────────────────
+
+
+def test_28_ask_answer(search_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    chat = FakeChat(["El error E-17 ", "indica depósito vacío [1]."])
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(
+        "docuchat.cli.build_answerer",
+        lambda s, retriever, top_k: answer_mod.build_answerer(
+            s, retriever=retriever, chat=chat, top_k=top_k
+        ),
+    )
+    try:
+        result = runner.invoke(app, ["ask", "¿Qué es E-17?"])
+        assert result.exit_code == 0
+        assert "El error E-17 indica depósito vacío [1]." in result.output
+        assert re.search(r"Fuentes:\n\[1\] \S+, p\. \d+", result.output)
+        assert result.output.count("indica depósito vacío [1].") == 1
+
+    finally:
+        monkeypatch.undo()
+
+
+# ── Test 29: ask con cita inválida ─────────────────────────────────────
+
+
+def test_29_ask_invalid_citation(search_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    chat = FakeChat(["Dato [1][9]."])
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(
+        "docuchat.cli.build_answerer",
+        lambda s, retriever, top_k: answer_mod.build_answerer(
+            s, retriever=retriever, chat=chat, top_k=top_k
+        ),
+    )
+    try:
+        result = runner.invoke(app, ["ask", "¿Pregunta?"])
+        assert result.exit_code == 0
+        assert "Aviso: citas sin fuente descartadas: [9]" in result.output
+    finally:
+        monkeypatch.undo()
+
+
+# ── Test 30: ask sin respuesta ─────────────────────────────────────────
+
+
+def test_30_ask_no_answer(search_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    chat = FakeChat([NO_ANSWER])
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(
+        "docuchat.cli.build_answerer",
+        lambda s, retriever, top_k: answer_mod.build_answerer(
+            s, retriever=retriever, chat=chat, top_k=top_k
+        ),
+    )
+    try:
+        result = runner.invoke(app, ["ask", "¿Quién ganó el mundial de 2010?"])
+        assert result.exit_code == 0
+        assert NO_ANSWER in result.output
+        assert "Fuentes:" not in result.output
+    finally:
+        monkeypatch.undo()
+
+
+# ── Test 31: ask sin citas en la respuesta ─────────────────────────────
+
+
+def test_31_ask_no_citations(search_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    chat = FakeChat(["Respuesta sin citas."])
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(
+        "docuchat.cli.build_answerer",
+        lambda s, retriever, top_k: answer_mod.build_answerer(
+            s, retriever=retriever, chat=chat, top_k=top_k
+        ),
+    )
+    try:
+        result = runner.invoke(app, ["ask", "¿Pregunta?"])
+        assert result.exit_code == 0
+        assert "Aviso: la respuesta no cita ninguna fuente." in result.output
+        assert "Fuentes:" not in result.output
+    finally:
+        monkeypatch.undo()
+
+
+# ── Test 32: ask con índice vacío ──────────────────────────────────────
+
+
+def test_32_ask_empty_index(search_env: Path) -> None:
+    result = runner.invoke(app, ["ask", "¿Pregunta?"])
+    assert result.exit_code == 1
+    assert "El índice está vacío" in result.output
+
+
+# ── Test 33: ask error de LLM ──────────────────────────────────────────
+
+
+def test_33_ask_llm_error(search_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    chat = FakeChat([], fail=True)
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(
+        "docuchat.cli.build_answerer",
+        lambda s, retriever, top_k: answer_mod.build_answerer(
+            s, retriever=retriever, chat=chat, top_k=top_k
+        ),
+    )
+    try:
+        result = runner.invoke(app, ["ask", "¿Pregunta?"])
+        assert result.exit_code == 1
+        assert "Error con el servidor de modelos: APIConnectionError" in result.output
+        assert isinstance(result.exception, SystemExit)
+    finally:
+        monkeypatch.undo()
+
+
+# ── Test 34: ask con top_k ─────────────────────────────────────────────
+
+
+def test_34_ask_top_k(search_env: Path) -> None:
+    result = runner.invoke(app, ["ingest", str(SAMPLES)])
+    assert result.exit_code == 0
+    chat = FakeChat(["Ok [1]."])
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(
+        "docuchat.cli.build_answerer",
+        lambda s, retriever, top_k: answer_mod.build_answerer(
+            s, retriever=retriever, chat=chat, top_k=top_k
+        ),
+    )
+    try:
+        result = runner.invoke(app, ["ask", "hola", "-k", "2"])
+        assert result.exit_code == 0
+        content = chat.calls[0][1]["content"]
+        assert "[2] " in content
+        assert "[3] " not in content
+    finally:
+        monkeypatch.undo()
+
+
+# ── Test 35: format_sources ────────────────────────────────────────────
+
+
+def test_35_format_sources() -> None:
+    result = format_sources([Source(1, "a.pdf", 3), Source(4, "b.md", 1)])
+    assert result == ["[1] a.pdf, p. 3", "[4] b.md, p. 1"]

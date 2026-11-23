@@ -2,14 +2,14 @@
 
 Lo mantiene el agente ejecutor: actualízalo al terminar cada spec.
 
-- Última spec completada: 034 (CLI search) — 033-b (cache vacía)
-- Fase actual: 3 · Recuperación y generación — 32 specs completadas (001-b, 003-b, 004-b, 004-c, 005-b + variantes, 020, 021, 022, 023, 024, 024-b, 025, 026, 027, 030, 031, 032, 033, 033-b, 034)
+- Última spec completada: 045-b (`ask`: sin duplicación de respuesta)
+- Fase actual: 4 · Generación — 39 specs completadas (001-b, 003-b, 004-b, 004-c, 005-b + variantes, 020, 021, 022, 023, 024, 024-b, 025, 026, 027, 030, 031, 032, 033, 033-b, 034, 040, 041, 042, 043, 044, 045, 045-b)
 
 ## Módulos
 
 | Módulo | Archivos | Estado |
 | --- | --- | --- |
-| `config` | `src/docuchat/config.py` | ✅ Config oMLX + indexado + búsqueda con 22 tests |
+| `config` | `src/docuchat/config.py` | ✅ Config oMLX + indexado + búsqueda + generación con 28 tests |
 | `env_check` | `src/docuchat/env_check.py`, `scripts/check_env.py` | ✅ Entorno 23 checks + sentinel clave vacía |
 | `models` | `src/docuchat/models.py` | ✅ Pydantic inmutables + 18 tests (Document, Page, Chunk, SearchResult + make_chunk_id) |
 | `ingest.cleaning` | `src/docuchat/ingest/cleaning.py` | ✅ 5 funciones puras + 15 tests |
@@ -17,16 +17,17 @@ Lo mantiene el agente ejecutor: actualízalo al terminar cada spec.
 | `ingest.docx_loader` | `src/docuchat/ingest/docx_loader.py` | ✅ python-docx + tests incluidos |
 | `ingest.text_loader` | `src/docuchat/ingest/text_loader.py` | ✅ MD/TXT con split_markdown_sections + 14 tests |
 | `ingest.scanner` | `src/docuchat/ingest/scanner.py` | ✅ Escaneo recursivo con soporte symlink, 5 funciones + 12 tests |
-| `cli` | `src/docuchat/cli.py`, `tests/test_cli.py` | ✅ Typer + Rich + `ingest` con indexación real (Progress + `--reset`) + `search` con formato de resultados, 26 tests |
+| `cli` | `src/docuchat/cli.py`, `tests/test_cli.py` | ✅ Typer + Rich + `ingest` con indexación real (Progress + `--reset`) + `search` con formato de resultados + `ask` con streaming, fuentes y manejo de errores, 34 tests |
 | `samples` | `scripts/sample_content.py`, `scripts/make_samples.py`, `tests/test_samples.py` | ✅ 7 docs + 19 tests |
-| `report` | `reports/` | ✅ 26 informes |
+| `report` | `reports/` | ✅ 30 informes |
 | `index` | `src/docuchat/index/__init__.py`, `src/docuchat/index/chunker.py`, `src/docuchat/index/registry.py`, `src/docuchat/index/vector_store.py`, `src/docuchat/index/bm25.py`, `src/docuchat/index/embeddings.py`, `src/docuchat/index/indexer.py`, `tests/index/test_chunker.py`, `tests/index/test_registry.py`, `tests/index/test_bm25.py`, `tests/index/test_embeddings.py`, `tests/index/test_indexer.py` | ✅ Chunker (17) + Registry (10) + Embeddings (9) + BM25 (12) + VectorStore (16, `all_chunks` ordenado + `query`) + Indexer (14) |
 | `retrieval` | `src/docuchat/retrieval/__init__.py`, `src/docuchat/retrieval/fusion.py`, `src/docuchat/retrieval/searcher.py`, `tests/retrieval/test_fusion.py`, `tests/retrieval/test_searcher.py` | ✅ RRF fuse (6) + drop_adjacent (4) + Searcher (13) + format_query (2) + build_searcher (1) |
+| `generation` | `src/docuchat/generation/__init__.py`, `src/docuchat/generation/prompts.py`, `src/docuchat/generation/citations.py`, `src/docuchat/generation/llm_client.py`, `src/docuchat/generation/answer.py`, `tests/generation/__init__.py`, `tests/generation/test_prompts.py`, `tests/generation/test_citations.py`, `tests/generation/test_llm_client.py`, `tests/generation/test_answer.py` | ✅ `prompts`: SYSTEM_PROMPT, NO_ANSWER, format_block (1), build_context (5), build_messages (1) + 8 tests · `citations`: CITATION_RE, Source, find_citations (4), resolve_citations (4), is_no_answer (5) + 13 tests · `llm_client`: ChatModel protocol, OpenAIChatModel (stream/complete), make_chat_model + 8 tests · `answer`: Retriever protocol, Answer frozen dataclass, Answerer (retrieve/stream/finalize/ask) con 9 parámetros, build_answerer(constructor) + 10 tests |
 
 ## Qué funciona
 
 - `uv sync` instala todas las dependencias
-- `uv run pytest -q` → 264 tests pasando
+- `uv run pytest -q` → 317 tests pasando
 - `uv run ruff check .` → sin errores
 - `uv run ruff format --check .` → todo formateado
 - `uv run mypy src` → sin errores
@@ -43,6 +44,8 @@ Lo mantiene el agente ejecutor: actualízalo al terminar cada spec.
 - Spec 024-b completada: `VectorStore.all_chunks()` devuelve los chunks ordenados por (source, page, position) y el `zip` usa `strict=True`.
 - Spec 026 completada: indexador incremental con `Indexer.index_folder()` — solo reindexa archivos nuevos o modificados, borra los eliminados, gestiona errores por archivo y soporta callback de progreso. Incluye `build_indexer(settings)` y `reset_index(settings)`.
 - Spec 027 completada: `ingest` sin `--dry-run` indexa con `Indexer`, barra de progreso Rich y opción `--reset`. Función `stats_line()` integrada.
+- Spec 044 completada: `build_answerer()`, clase `Answerer` (retrieve/stream/finalize/ask) con `Retriever` protocol y `ChatModel` protocol.
+- Spec 045 completada: comando `ask` con streaming, `format_sources()`, manejo de errores, fuentes y citas inválidas.
 
 ## Notas y deuda técnica
 

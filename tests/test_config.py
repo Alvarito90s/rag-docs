@@ -172,6 +172,45 @@ def test_invalid_search_values(kwargs: dict) -> None:
         Settings(**kwargs)
 
 
+# --- Generation defaults ---
+
+
+def test_generation_defaults() -> None:
+    s = Settings()
+    assert s.llm_max_tokens == 1024
+    assert s.llm_temperature == 0.2
+    assert s.llm_thinking is False
+    assert s.context_max_chars == 6000
+
+
+# --- Generation env override ---
+
+
+def test_generation_env_override(monkeypatch) -> None:
+    monkeypatch.setenv("DOCUCHAT_LLM_THINKING", "true")
+    monkeypatch.setenv("DOCUCHAT_LLM_TEMPERATURE", "0")
+    s = Settings()
+    assert s.llm_thinking is True
+    assert s.llm_temperature == 0.0
+
+
+# --- Generation validation ---
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"llm_max_tokens": 0},
+        {"llm_temperature": -0.1},
+        {"llm_temperature": 2.5},
+        {"context_max_chars": 0},
+    ],
+)
+def test_invalid_generation_values(kwargs: dict) -> None:
+    with pytest.raises(ValidationError):
+        Settings(**kwargs)
+
+
 # --- Cache ---
 
 

@@ -11,6 +11,8 @@ from rich.progress import Progress
 from rich.table import Table
 
 from docuchat.config import get_settings
+from docuchat.generation.answer import build_answerer
+from docuchat.generation.citations import Source
 from docuchat.index.embeddings import EmbeddingError
 from docuchat.index.indexer import (
     IndexStats,
@@ -69,6 +71,11 @@ def stats_line(stats: IndexStats) -> str:
         f"{len(stats.removed)} eliminados, "
         f"{len(stats.errors)} con errores"
     )
+
+
+def format_sources(sources: list[Source]) -> list[str]:
+    """Una línea por fuente: '[n] documento, p. X'."""
+    return [f"[{s.number}] {s.source}, p. {s.page}" for s in sources]
 
 
 @app.command()
@@ -210,6 +217,68 @@ def search(
         typer.echo(format_result(result))
         if i < len(results) - 1:
             typer.echo()
+
+
+@app.command()
+def ask(
+    question: Annotated[str, typer.Argument(help="Pregunta sobre tus documentos.")],
+    top_k: Annotated[
+        int | None,
+        typer.Option("--top-k", "-k", help="Fragmentos de contexto (por defecto DOCUCHAT_TOP_K)."),
+    ] = None,
+) -> None:
+    """Responde a una pregunta citando los documentos."""
+    # 1. Settings y validación de top_k
+    settings = get_settings()
+    if top_k is not None and top_k <= 0:
+        typer.echo("--top-k debe ser positivo", err=True)
+        raise typer.Exit(code=1)
+
+    # 2. Construir searcher
+    try:
+        searcher = build_searcher(settings)
+    except EmbeddingModelMismatchError as e:
+        typer.echo(str(e), err=True)
+        raise typer.Exit(code=1) from None
+
+    if searcher.size() == 0:
+        typer.echo("El índice está vacío. Ejecuta: docuchat ingest", err=True)
+        raise typer.Exit(code=1)
+
+    # 3. Construir answerer y ejecutar
+    try:
+        answerer = build_answerer(settings, retriever=searcher, top_k=top_k)
+        answer = answerer.ask(question, on_token=lambda t: typer.echo(t, nl=False))
+        typer.echo()
+    except (OpenAIError, EmbeddingError) as e:
+        typer.echo()
+        typer.echo(f"Error con el servidor de modelos: {type(e).__name__}: {e}", err=True)
+        raise typer.Exit(code=1) from None
+
+    # 4. No respuesta
+    if answer.no_answer:
+        return
+
+    # 5. Respuesta y fuentes
+
+    if answer.sources:
+        typer.echo()
+        typer.echo("Fuentes:")
+        for line in format_sources(answer.sources):
+            typer.echo(line)
+    else:
+        typer.echo(
+            "Aviso: la respuesta no cita ninguna fuente.",
+            err=True,
+        )
+
+    # 6. Citas inválidas
+    if answer.invalid_citations:
+        invalid_str = ", ".join(f"[{n}]" for n in answer.invalid_citations)
+        typer.echo(
+            f"Aviso: citas sin fuente descartadas: {invalid_str}",
+            err=True,
+        )
 
 
 if __name__ == "__main__":
