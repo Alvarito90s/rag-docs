@@ -1,4 +1,4 @@
-"""Pruebas de versión 1.0.0 (spec 073)."""
+"""Pruebas de versión 1.0.1 (spec 074)."""
 
 import tomllib
 from pathlib import Path
@@ -8,7 +8,7 @@ from docuchat.api.app import create_app
 from docuchat.config import Settings
 
 ROOT = Path(__file__).resolve().parents[1]
-V = "1.0.0"
+V = "1.0.1"
 
 
 def test_pyproject_matches_init() -> None:
@@ -22,7 +22,7 @@ def test_pyproject_matches_init() -> None:
 def test_changelog_version_line() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text()
     first_heading = next(line for line in changelog.splitlines() if line.startswith("## ["))
-    assert first_heading == "## [1.0.0] - 2026-11-23"
+    assert first_heading == "## [1.0.1] - 2026-11-23"
     assert "### Añadido" in changelog
 
 

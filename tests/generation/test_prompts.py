@@ -70,3 +70,8 @@ def test_build_messages() -> None:
 def test_system_prompt_contains_no_answer_and_tag() -> None:
     assert NO_ANSWER in SYSTEM_PROMPT
     assert "[1]" in SYSTEM_PROMPT
+
+
+def test_system_prompt_ambiguas() -> None:
+    assert "Solo si ningún fragmento contiene la información pedida" in SYSTEM_PROMPT
+    assert "di a cuál se refiere" in SYSTEM_PROMPT

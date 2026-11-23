@@ -2,6 +2,18 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones según [SemVer](https://semver.org/lang/es/).
 
+## [1.0.1] - 2026-11-23
+
+### Corregido
+- Falso rechazo en preguntas ambiguas (q17 de la evaluación): el prompt pide ahora responder para el caso concreto y decir a cuál se refiere, en vez de "No lo sé".
+
+### Cambiado
+- Temperatura por defecto del LLM: 0 (antes 0,2), para que las respuestas y la evaluación sean reproducibles.
+- Evaluación de generación: palabras clave 1.000, precisión de citas 0.971 y 0 falsos rechazos; el rechazo correcto se mantiene en 1.000.
+
+### Añadido
+- README en inglés (`README.en.md`).
+
 ## [1.0.0] - 2026-11-23
 
 Primera versión pública.

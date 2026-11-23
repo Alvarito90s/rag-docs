@@ -1,4 +1,4 @@
-"""Pruebas de contenido del README (spec 072).
+"""Pruebas de contenido del README (spec 072, 074).
 
 Ningún test llama a oMLX.
 """
@@ -15,15 +15,16 @@ from docuchat.config import Settings
 
 ROOT = Path(__file__).resolve().parents[1]
 README = (ROOT / "README.md").read_text("utf-8")
+README_EN = (ROOT / "README.en.md").read_text("utf-8")
 RESULTS = (ROOT / "eval" / "results.md").read_text("utf-8")
 PENDIENTES = {"docs/demo.gif"}
 
 
 # ---------- Test 1: copia exacta ----------
 def test_1_exact_copy() -> None:
-    """Los bytes de README.md son iguales a los de tasks/assets/072/README.md."""
+    """Los bytes de README.md son iguales a los de tasks/assets/074/README.md."""
     assert (ROOT / "README.md").read_bytes() == (
-        ROOT / "tasks" / "assets" / "072" / "README.md"
+        ROOT / "tasks" / "assets" / "074" / "README.md"
     ).read_bytes()
 
 
@@ -114,3 +115,38 @@ def test_7_real_api_routes(monkeypatch, tmp_path) -> None:
     assert len(routes) == 7, f"Se esperaban 7 rutas, se encontraron {len(routes)}: {routes}"
     for route in routes:
         assert route in api_paths, f"Ruta no encontrada: {route}"
+
+
+# ---------- Test 8: copia exacta del inglés ----------
+def test_8_exact_copy_en() -> None:
+    """Los bytes de README.en.md son iguales a los de tasks/assets/074/README.en.md."""
+    assert (ROOT / "README.en.md").read_bytes() == (
+        ROOT / "tasks" / "assets" / "074" / "README.en.md"
+    ).read_bytes()
+
+
+# ---------- Test 9: inglés al día ----------
+def test_9_english_up_to_date() -> None:
+    """El README en inglés está actualizado con los resultados."""
+    # Las 9 filas de recuperación están en README_EN
+    results_lines = RESULTS.splitlines()
+    matching = [line for line in results_lines if re.match(r"\| (500|800|1200) \|", line)]
+    assert len(matching) == 9, f"Se esperaban 9 líneas, se encontraron {len(matching)}"
+    for line in matching:
+        assert line in README_EN, f"Falta en README_EN: {line}"
+
+    # Palabras clave, precisión de citas, falsos rechazos
+    assert "| Keyword accuracy | 1.000 |" in README_EN
+    assert "| Citation precision | 0.971 |" in README_EN
+    assert "| False refusals | 0 |" in README_EN
+
+    # Enlaces locales existen (misma regla que test 5)
+    links = re.findall(r"\]\(([^)#\s]+)\)", README_EN)
+    local_links = [line for line in links if not line.startswith("http")]
+    for link in local_links:
+        if link not in PENDIENTES:
+            assert (ROOT / link).exists(), f"Enlace roto en inglés: {link}"
+
+    # Los dos README se enlazan entre sí
+    assert "[English](README.en.md)" in README
+    assert "[Español](README.md)" in README_EN

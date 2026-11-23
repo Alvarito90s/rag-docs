@@ -16,8 +16,11 @@ SYSTEM_PROMPT = (
     "Reglas:\n"
     "1. Usa únicamente la información de los fragmentos; nunca tu conocimiento propio.\n"
     "2. Cita cada dato con el número de su fragmento entre corchetes, por ejemplo [1] o [2][3].\n"
-    f"3. Si los fragmentos no contienen la respuesta, responde exactamente: {NO_ANSWER}\n"
-    "4. Responde en el idioma de la pregunta, de forma breve y directa."
+    f"3. Solo si ningún fragmento contiene la información pedida, responde exactamente: "
+    f"{NO_ANSWER}\n"
+    "4. Si la pregunta no dice a qué se refiere y los fragmentos responden para un caso concreto, "
+    "responde para ese caso y di a cuál se refiere.\n"
+    "5. Responde en el idioma de la pregunta, de forma breve y directa."
 )
 
 

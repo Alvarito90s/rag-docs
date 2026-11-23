@@ -178,7 +178,7 @@ def test_invalid_search_values(kwargs: dict) -> None:
 def test_generation_defaults() -> None:
     s = Settings()
     assert s.llm_max_tokens == 1024
-    assert s.llm_temperature == 0.2
+    assert s.llm_temperature == 0.0
     assert s.llm_thinking is False
     assert s.context_max_chars == 6000
 
@@ -188,10 +188,10 @@ def test_generation_defaults() -> None:
 
 def test_generation_env_override(monkeypatch) -> None:
     monkeypatch.setenv("DOCUCHAT_LLM_THINKING", "true")
-    monkeypatch.setenv("DOCUCHAT_LLM_TEMPERATURE", "0")
+    monkeypatch.setenv("DOCUCHAT_LLM_TEMPERATURE", "0.7")
     s = Settings()
     assert s.llm_thinking is True
-    assert s.llm_temperature == 0.0
+    assert s.llm_temperature == 0.7
 
 
 # --- Generation validation ---

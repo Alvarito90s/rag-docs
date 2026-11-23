@@ -1,6 +1,6 @@
 [project]
 name = "docuchat"
-version = "1.0.0"
+version = "1.0.1"
 description = "Buscador semántico local (RAG) con citas a la página exacta."
 readme = "README.md"
 license = "MIT"

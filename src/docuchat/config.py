@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     query_instruction: str = "Given a question, retrieve passages that answer the question"
     # Generación
     llm_max_tokens: int = Field(default=1024, gt=0)
-    llm_temperature: float = Field(default=0.2, ge=0, le=2)
+    llm_temperature: float = Field(default=0.0, ge=0, le=2)
     llm_thinking: bool = False  # razonamiento de Qwen (más lento); se pasa como enable_thinking
     context_max_chars: int = Field(default=6000, gt=0)  # tope del contexto que se manda al LLM
     # API web

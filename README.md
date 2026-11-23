@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/Alvarito90s/RAG-Docs/actions/workflows/ci.yml/badge.svg)](https://github.com/Alvarito90s/RAG-Docs/actions/workflows/ci.yml)
 
+**Español** · [English](README.en.md)
+
 Pregunta a tus documentos sin que salgan de tu ordenador. DocuChat responde con citas `[n]` que enlazan a la página exacta del documento, y dice "No lo sé" cuando la respuesta no está.
 
 ![Demo: pregunta, respuesta en streaming y cita que abre el PDF en la página](docs/demo.gif)
@@ -58,19 +60,19 @@ Evaluación con 42 preguntas sobre los 7 documentos de `samples/`: 32 tienen res
 | Métrica | Valor |
 | --- | ---: |
 | Preguntas | 42 (32 con respuesta, 10 sin respuesta) |
-| Palabras clave correctas | 0.969 |
-| Precisión de citas | 1.000 |
+| Palabras clave correctas | 1.000 |
+| Precisión de citas | 0.971 |
 | Rechazo correcto | 1.000 |
-| Falsos rechazos | 1 |
-| Primer token (media) | 0.47 s |
-| Tiempo total (media) | 0.62 s |
+| Falsos rechazos | 0 |
+| Primer token (media) | 0.57 s |
+| Tiempo total (media) | 0.75 s |
 
 Cómo leerlo:
 
 - **Hit@5 es 1.000 en todas las configuraciones.** Con un corpus tan pequeño, la página correcta siempre llega al contexto; lo que separa las configuraciones es Hit@1 y MRR.
 - **La búsqueda vectorial gana a la híbrida en este corpus.** Las preguntas están en lenguaje natural y hay pocos documentos. La híbrida queda por defecto pensando en corpus más grandes y en búsquedas por códigos exactos (`SKU-4471-B`, `E-17`), pero aquí no aporta; con `eval/run_eval.py` puedes medirlo con tus propios documentos.
-- **Fallo conocido: q17** ("¿Durante cuánto tiempo es gratuito el soporte técnico?"). La página correcta del manual se recupera, pero el modelo responde "No lo sé".
-- Todas las citas apuntan al documento y la página esperados, y las 10 preguntas sin respuesta se rechazan.
+- **La q17 era un falso rechazo, corregido en la v1.0.1.** "¿Durante cuánto tiempo es gratuito el soporte técnico?" no dice de qué producto habla, y la única regla del prompt para la duda era responder "No lo sé". Ahora el prompt pide responder para el caso concreto y decir a cuál se refiere; con temperatura 0, la q17 acierta en todas las pasadas.
+- **Por eso la precisión de citas es 0.971 y no 1.000.** La q17 añade la garantía de 2 años del contrato y la cita, y la evaluación la cuenta como página no esperada. Las 10 preguntas sin respuesta se siguen rechazando.
 
 Para repetir la evaluación (con oMLX arrancado; tarda unos minutos):
 
@@ -157,6 +159,7 @@ Todo se configura con variables `DOCUCHAT_*` en `.env`; [`.env.example`](.env.ex
 | `DOCUCHAT_DATA_DIR` | `data` | Índice (Chroma y registro SQLite) |
 | `DOCUCHAT_CHUNK_SIZE` / `DOCUCHAT_CHUNK_OVERLAP` | `800` / `120` | Tamaño y solape de los chunks, en caracteres |
 | `DOCUCHAT_TOP_K` | `5` | Fragmentos que se pasan al LLM |
+| `DOCUCHAT_LLM_TEMPERATURE` | `0` | Aleatoriedad del LLM; 0 da respuestas reproducibles |
 | `DOCUCHAT_LLM_THINKING` | `false` | Razonamiento de Qwen (más lento) |
 
 Si cambias el modelo de embeddings, reconstruye el índice con `docuchat ingest --reset`: la app se niega a mezclar vectores de modelos distintos.
@@ -168,6 +171,7 @@ Si cambias el modelo de embeddings, reconstruye el índice con `docuchat ingest 
 - **Instrucción solo en las consultas.** Qwen3-Embedding recomienda prefijar la pregunta con una instrucción; los documentos se indexan sin ella.
 - **RRF con k=60 y sin vecinos repetidos.** De dos chunks adyacentes de la misma página solo queda el mejor, para no gastar contexto en texto solapado.
 - **Citas `[n]` validadas.** Las que no corresponden a ningún fragmento se descartan y se avisa.
+- **Temperatura 0 y una regla para preguntas ambiguas.** Las respuestas son reproducibles y, si la pregunta no concreta a qué se refiere, el modelo responde para el caso que encuentra en vez de decir "No lo sé".
 - **Razonamiento desactivado** por latencia; se activa con `DOCUCHAT_LLM_THINKING=true`.
 - **Índice que se repara solo.** Si el registro SQLite y Chroma se desincronizan, la siguiente indexación reprocesa lo que falta.
 

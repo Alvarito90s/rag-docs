@@ -1,6 +1,6 @@
 # Resultados de la evaluación
 
-Fecha: 2026-11-23 14:18 · LLM: `Qwen3.6-35B-A3B-6bit` · Embeddings: `Qwen3-Embedding-0.6B-4bit-DWQ`
+Fecha: 2026-11-23 15:42 · LLM: `Qwen3.6-35B-A3B-6bit` · Embeddings: `Qwen3-Embedding-0.6B-4bit-DWQ`
 
 ## Recuperación
 
@@ -25,12 +25,9 @@ Búsqueda híbrida, chunk 800.
 | Métrica | Valor |
 | --- | ---: |
 | Preguntas | 42 (32 con respuesta, 10 sin respuesta) |
-| Palabras clave correctas | 0.969 |
-| Precisión de citas | 1.000 |
+| Palabras clave correctas | 1.000 |
+| Precisión de citas | 0.971 |
 | Rechazo correcto | 1.000 |
-| Falsos rechazos | 1 |
-| Primer token (media) | 0.47 s |
-| Tiempo total (media) | 0.62 s |
-
-Fallos:
-- q17: No lo sé con la información de los documentos.
+| Falsos rechazos | 0 |
+| Primer token (media) | 0.57 s |
+| Tiempo total (media) | 0.75 s |
