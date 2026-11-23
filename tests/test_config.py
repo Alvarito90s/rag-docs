@@ -86,6 +86,49 @@ def test_unknown_env_ignored(monkeypatch) -> None:
     Settings()  # no debe fallar
 
 
+# --- Index defaults ---
+
+
+def test_index_defaults() -> None:
+    s = Settings()
+    assert s.embedding_batch_size == 32
+    assert s.request_max_retries == 3
+    assert s.chroma_collection == "chunks"
+
+
+# --- Index env override ---
+
+
+def test_index_env_override(monkeypatch) -> None:
+    monkeypatch.setenv("DOCUCHAT_EMBEDDING_BATCH_SIZE", "8")
+    s = Settings()
+    assert s.embedding_batch_size == 8
+
+
+# --- Derived paths ---
+
+
+def test_derived_paths(monkeypatch) -> None:
+    s = Settings()
+    assert s.chroma_dir == Path("data/chroma")
+    assert s.registry_path == Path("data/registry.sqlite3")
+    monkeypatch.setenv("DOCUCHAT_DATA_DIR", "/tmp/x")
+    s2 = Settings()
+    assert s2.chroma_dir == Path("/tmp/x/chroma")
+
+
+# --- Invalid index values ---
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"embedding_batch_size": 0}, {"request_max_retries": -1}],
+)
+def test_invalid_index_values(kwargs: dict) -> None:
+    with pytest.raises(ValidationError):
+        Settings(**kwargs)
+
+
 # --- Cache ---
 
 

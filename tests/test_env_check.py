@@ -13,6 +13,7 @@ from docuchat.env_check import (
     check_model_listed,
     format_result,
     main,
+    make_client,
     model_available,
     run_checks,
 )
@@ -265,3 +266,22 @@ def test_main_no_warning_when_key_set(capsys, monkeypatch) -> None:
             main()
     captured = capsys.readouterr()
     assert "Aviso: DOCUCHAT_LLM_API_KEY está vacía" not in captured.out
+
+
+# --- make_client con clave vacía ---
+
+
+def test_make_client_empty_key(monkeypatch) -> None:
+    """make_client(Settings()) no lanza y client.api_key == 'sin-clave'."""
+    monkeypatch.delenv("DOCUCHAT_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    client = make_client("http://127.0.0.1:9/v1", Settings())
+    assert client.api_key == "sin-clave"
+
+
+def test_make_client_with_key(monkeypatch) -> None:
+    """DOCUCHAT_LLM_API_KEY=abc → client.api_key == 'abc'."""
+    monkeypatch.setenv("DOCUCHAT_LLM_API_KEY", "abc")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    client = make_client("http://127.0.0.1:9/v1", Settings())
+    assert client.api_key == "abc"

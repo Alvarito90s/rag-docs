@@ -6,6 +6,8 @@ from openai import OpenAI, OpenAIError
 
 from docuchat.config import Settings, get_settings
 
+MISSING_API_KEY = "sin-clave"  # marcador: el servidor responderá 401 en vez de romper
+
 
 @dataclass(frozen=True)
 class CheckResult:
@@ -20,7 +22,7 @@ def make_client(base_url: str, settings: Settings) -> OpenAI:
     """Crea un cliente OpenAI contra base_url con la api_key y el timeout de settings."""
     return OpenAI(
         base_url=base_url,
-        api_key=settings.llm_api_key,
+        api_key=settings.llm_api_key or MISSING_API_KEY,
         timeout=settings.request_timeout,
     )
 

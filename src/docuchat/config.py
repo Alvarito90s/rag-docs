@@ -29,6 +29,20 @@ class Settings(BaseSettings):
     # Chunking
     chunk_size: int = Field(default=800, gt=0)
     chunk_overlap: int = Field(default=120, ge=0)
+    # Indexado
+    embedding_batch_size: int = Field(default=32, gt=0)
+    request_max_retries: int = Field(default=3, ge=0)
+    chroma_collection: str = "chunks"
+
+    @property
+    def chroma_dir(self) -> Path:
+        """Carpeta de la base vectorial."""
+        return self.data_dir / "chroma"
+
+    @property
+    def registry_path(self) -> Path:
+        """Archivo SQLite del registro de documentos indexados."""
+        return self.data_dir / "registry.sqlite3"
 
     @model_validator(mode="after")
     def _check_chunking(self) -> "Settings":

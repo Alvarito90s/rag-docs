@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from docuchat.models import DocType, Document, Page
+from docuchat.models import Chunk, DocType, Document, Page, make_chunk_id
 
 SHA = "a" * 64
 
@@ -119,3 +119,43 @@ def test_doc_type_str_enum() -> None:
 
 def test_doctype_equals_string() -> None:
     assert DocType.PDF == "pdf"
+
+
+# --- make_chunk_id ---
+
+
+def test_make_chunk_id() -> None:
+    assert make_chunk_id("sub/a.pdf", 3, 0) == "sub/a.pdf#p3#c0"
+
+
+# --- Chunk ---
+
+
+def test_chunk_valid() -> None:
+    chunk = Chunk(
+        chunk_id="a.pdf#p1#c0",
+        source="a.pdf",
+        doc_sha256=SHA,
+        page=1,
+        position=0,
+        text="hola",
+    )
+    assert chunk.heading is None
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"text": ""}, {"page": 0}, {"position": -1}],
+)
+def test_chunk_invalid(kwargs: dict) -> None:
+    base = {
+        "chunk_id": "a.pdf#p1#c0",
+        "source": "a.pdf",
+        "doc_sha256": SHA,
+        "page": 1,
+        "position": 0,
+        "text": "hola",
+    }
+    base.update(kwargs)
+    with pytest.raises(ValidationError):
+        Chunk(**base)

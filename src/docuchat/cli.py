@@ -4,11 +4,20 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from openai import OpenAIError
 from rich.console import Console
 from rich.markup import escape
+from rich.progress import Progress
 from rich.table import Table
 
 from docuchat.config import get_settings
+from docuchat.index.embeddings import EmbeddingError
+from docuchat.index.indexer import (
+    IndexStats,
+    build_indexer,
+    reset_index,
+)
+from docuchat.index.vector_store import EmbeddingModelMismatchError
 from docuchat.ingest.scanner import IngestResult, load_folder
 
 app = typer.Typer(
@@ -49,6 +58,17 @@ def summary_line(result: IngestResult) -> str:
     return f"{n_docs} documentos, {n_paginas} páginas, {n_caracteres} caracteres"
 
 
+def stats_line(stats: IndexStats) -> str:
+    """'A añadidos, U actualizados, S sin cambios, R eliminados, E con errores'."""
+    return (
+        f"{len(stats.added)} añadidos, "
+        f"{len(stats.updated)} actualizados, "
+        f"{len(stats.unchanged)} sin cambios, "
+        f"{len(stats.removed)} eliminados, "
+        f"{len(stats.errors)} con errores"
+    )
+
+
 @app.command()
 def ingest(
     folder: Annotated[
@@ -59,26 +79,64 @@ def ingest(
         bool,
         typer.Option("--dry-run", help="Solo lista documentos y páginas; no indexa."),
     ] = False,
+    reset: Annotated[
+        bool,
+        typer.Option("--reset", help="Borra el índice y lo reconstruye desde cero."),
+    ] = False,
 ) -> None:
-    """Ingiere una carpeta de documentos."""
-    if not dry_run:
-        typer.echo(
-            "La indexación llega en la Fase 2. Usa --dry-run.",
-            err=True,
-        )
-        raise typer.Exit(code=1)
+    """Indexa una carpeta de documentos (incremental)."""
+    # 1. Resolución de carpeta
     root = folder if folder is not None else get_settings().documents_dir
     if not root.is_dir():
         typer.echo(f"No existe la carpeta: {root}", err=True)
         raise typer.Exit(code=1)
     root = root.resolve()
     console = Console()
-    result = load_folder(root)
-    console.print(build_table(result, root))
-    console.print(summary_line(result))
-    for source, mensaje in result.errors:
+
+    # 2. Dry-run: comportamiento actual, --reset se ignora
+    if dry_run:
+        result = load_folder(root)
+        console.print(build_table(result, root))
+        console.print(summary_line(result))
+        for source, mensaje in result.errors:
+            typer.echo(f"ERROR {source}: {mensaje}", err=True)
+        if result.errors:
+            raise typer.Exit(code=1)
+        return
+
+    # 3. Indexación real
+    # 3a. Settings
+    settings = get_settings()
+    # 3b. Reset si procede
+    if reset:
+        reset_index(settings)
+        console.print("Índice borrado.")
+    # 3c. Construir indexador
+    try:
+        indexer = build_indexer(settings)
+    except EmbeddingModelMismatchError as e:
+        typer.echo(str(e), err=True)
+        raise typer.Exit(code=1) from None
+    # 3d. Indexar con barra de progreso
+    try:
+        with indexer, Progress(console=console, transient=True) as progress:
+            task = progress.add_task("Indexando", total=None)
+
+            def on_progress(source: str, i: int, total: int) -> None:
+                progress.update(task, completed=i, total=total, description=escape(source))
+
+            stats = indexer.index_folder(root, on_progress=on_progress)
+            total_chunks = indexer.chunk_count()
+    except (OpenAIError, EmbeddingError) as e:
+        typer.echo(f"Error con el servidor de embeddings: {type(e).__name__}: {e}", err=True)
+        raise typer.Exit(code=1) from None
+    # 3f. Estadísticas
+    typer.echo(stats_line(stats))
+    typer.echo(f"Chunks en el índice: {total_chunks}")
+    # 3g. Errores por archivo
+    for source, mensaje in stats.errors:
         typer.echo(f"ERROR {source}: {mensaje}", err=True)
-    if result.errors:
+    if stats.errors:
         raise typer.Exit(code=1)
 
 
