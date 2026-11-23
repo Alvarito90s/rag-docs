@@ -6,6 +6,8 @@ VARIANTS: dict[str, dict[str, object]] = {
     "base": {},
     "rerank": {"rerank_enabled": True},
     "sin_rerank": {"rerank_enabled": False},
+    "contextual": {"contextual_enabled": True},
+    "contextual_sin_rerank": {"contextual_enabled": True, "rerank_enabled": False},
 }
 
 

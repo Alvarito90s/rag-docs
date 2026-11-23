@@ -8,7 +8,7 @@ from docuchat.index.embeddings import Embedder, make_embedder
 from docuchat.index.fts import FtsIndex
 from docuchat.index.indexer import sync_fts
 from docuchat.index.vector_store import VectorStore
-from docuchat.models import Chunk, SearchResult
+from docuchat.models import Chunk, SearchResult, index_text
 from docuchat.retrieval.fusion import drop_adjacent, rrf_fuse
 from docuchat.retrieval.reranker import Reranker, RerankError, make_reranker
 
@@ -118,7 +118,7 @@ class Searcher:
         if self._reranker is not None and len(kept) > 0:
             try:
                 pool = kept[: max(self._rerank_candidates, top_k)]
-                scores = self._reranker.rerank(query, [c.text for c in pool])
+                scores = self._reranker.rerank(query, [index_text(c) for c in pool])
                 ordered_indices = sorted(range(len(pool)), key=lambda i: -scores[i])
                 kept = [pool[i] for i in ordered_indices[:top_k]]
                 rerank_scores = scores

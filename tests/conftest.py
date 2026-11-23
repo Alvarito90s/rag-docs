@@ -25,3 +25,9 @@ def _sin_reranker_real(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "docuchat.retrieval.searcher.make_reranker", lambda settings, transport=None: None
     )
+
+
+@pytest.fixture(autouse=True)
+def _sin_contextualizador_real(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regla 3: ningún test llama al LLM para generar contextos; build_indexer recibe None."""
+    monkeypatch.setattr("docuchat.index.indexer.make_contextualizer", lambda settings: None)

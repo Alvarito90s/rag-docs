@@ -10,11 +10,13 @@ from chromadb.config import Settings as ChromaSettings
 
 from docuchat.config import Settings
 from docuchat.index.chunker import chunk_document
+from docuchat.index.contextualizer import Contextualizer, make_contextualizer
 from docuchat.index.embeddings import Embedder, make_embedder
 from docuchat.index.fts import FtsIndex
 from docuchat.index.registry import Registry
 from docuchat.index.vector_store import VectorStore
 from docuchat.ingest.scanner import file_sha256, load_document, scan_folder
+from docuchat.models import index_text
 
 ProgressCallback = Callable[[str, int, int], None]  # (source, hechos, total)
 
@@ -30,6 +32,7 @@ class IndexStats:
     errors: list[tuple[str, str]] = field(default_factory=list)  # (source, mensaje)
     chunks_added: int = 0
     fts_synced: list[str] = field(default_factory=list)
+    contexts_generated: int = 0
 
 
 def sync_fts(store: VectorStore, fts: FtsIndex) -> list[str]:
@@ -57,6 +60,7 @@ class Indexer:
         chunk_size: int,
         chunk_overlap: int,
         fts: FtsIndex | None = None,
+        contextualizer: Contextualizer | None = None,
     ) -> None:
         self._store = store
         self._registry = registry
@@ -64,6 +68,7 @@ class Indexer:
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
         self._fts = fts
+        self._contextualizer = contextualizer
 
     def index_folder(self, root: Path, on_progress: ProgressCallback | None = None) -> IndexStats:
         """Sincroniza el índice con los archivos de root."""
@@ -84,6 +89,7 @@ class Indexer:
         unchanged: list[str] = []
         errors: list[tuple[str, str]] = []
         chunks_added = 0
+        llm_calls_start = self._contextualizer.llm_calls if self._contextualizer is not None else 0
 
         for i, path in enumerate(paths, start=1):
             source = path.resolve().relative_to(root.resolve()).as_posix()
@@ -106,6 +112,11 @@ class Indexer:
             try:
                 doc = load_document(path, root)
                 chunks = chunk_document(doc, self._chunk_size, self._chunk_overlap)
+                if self._contextualizer is not None and chunks:
+                    chunks = [
+                        c.model_copy(update={"context": self._contextualizer.context_for(doc, c)})
+                        for c in chunks
+                    ]
             except Exception as e:
                 errors.append((source, f"{type(e).__name__}: {e}"))
                 scanned_sources.add(source)
@@ -114,7 +125,7 @@ class Indexer:
                 continue
 
             # d) Embedding
-            vectors = self._embedder.embed([c.text for c in chunks]) if chunks else []
+            vectors = self._embedder.embed([index_text(c) for c in chunks]) if chunks else []
 
             # e) Guardar en store y registry
             self._store.delete_source(source)
@@ -156,6 +167,11 @@ class Indexer:
             errors=errors,
             chunks_added=chunks_added,
             fts_synced=synced,
+            contexts_generated=(
+                (self._contextualizer.llm_calls - llm_calls_start)
+                if self._contextualizer is not None
+                else 0
+            ),
         )
 
     def chunk_count(self) -> int:
@@ -185,6 +201,7 @@ def build_indexer(settings: Settings, embedder: Embedder | None = None) -> Index
     fts = FtsIndex(settings.fts_path)
     if embedder is None:
         embedder = make_embedder(settings)
+    contextualizer = make_contextualizer(settings) if settings.contextual_enabled else None
     return Indexer(
         store=store,
         registry=registry,
@@ -192,6 +209,7 @@ def build_indexer(settings: Settings, embedder: Embedder | None = None) -> Index
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
         fts=fts,
+        contextualizer=contextualizer,
     )
 
 

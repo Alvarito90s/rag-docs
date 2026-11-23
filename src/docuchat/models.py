@@ -32,6 +32,14 @@ class Chunk(BaseModel):
     position: int = Field(ge=0)  # orden del chunk dentro de su página, desde 0
     heading: str | None = None
     text: str = Field(min_length=1)
+    context: str = ""  # frases que sitúan el chunk en su documento (retrieval contextual)
+
+
+def index_text(chunk: Chunk) -> str:
+    """Texto que se indexa: context + "\\n\\n" + text, o solo text si context está vacío."""
+    if chunk.context.strip() == "":
+        return chunk.text
+    return f"{chunk.context.strip()}\n\n{chunk.text}"
 
 
 class Page(BaseModel):

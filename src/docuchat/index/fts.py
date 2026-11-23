@@ -10,7 +10,7 @@ from contextlib import closing, contextmanager
 from pathlib import Path
 from typing import cast
 
-from docuchat.models import Chunk
+from docuchat.models import Chunk, index_text
 
 
 def tokenize(text: str) -> list[str]:
@@ -61,7 +61,7 @@ class FtsIndex:
         """Agrega chunks al índice."""
         if not chunks:
             return
-        token_texts = [(c.chunk_id, c.source, " ".join(tokenize(c.text))) for c in chunks]
+        token_texts = [(c.chunk_id, c.source, " ".join(tokenize(index_text(c)))) for c in chunks]
         with self._connect() as conn:
             conn.executemany(
                 f"INSERT INTO {self.TABLE} (chunk_id, source, text) VALUES (?, ?, ?)",

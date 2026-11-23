@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     rerank_model: str = "Qwen3-Reranker-0.6B-4bit"
     rerank_candidates: int = Field(default=10, gt=0)  # candidatos de RRF que se reordenan
     rerank_instruction: str = "Given a question, retrieve passages that answer the question"
+    # Retrieval contextual (fase 11; apagado por defecto)
+    contextual_enabled: bool = False
+    contextual_model: str = ""  # vacío = llm_model
+    contextual_head_chars: int = Field(default=1500, gt=0)  # principio del documento
+    contextual_window_chars: int = Field(default=3000, gt=0)  # página del chunk
+    contextual_max_chars: int = Field(default=300, gt=0)  # recorte del contexto generado
+    contextual_max_tokens: int = Field(default=200, gt=0)
     # Generación
     llm_max_tokens: int = Field(default=1024, gt=0)
     llm_temperature: float = Field(default=0.0, ge=0, le=2)
@@ -76,6 +83,11 @@ class Settings(BaseSettings):
     def fts_path(self) -> Path:
         """Archivo SQLite del índice léxico (FTS5)."""
         return self.data_dir / "fts.sqlite3"
+
+    @property
+    def context_cache_path(self) -> Path:
+        """Caché SQLite de contextos generados (reset_index no la borra)."""
+        return self.data_dir / "context_cache.sqlite3"
 
     @property
     def registry_path(self) -> Path:

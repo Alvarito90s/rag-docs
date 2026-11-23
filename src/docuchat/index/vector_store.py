@@ -141,6 +141,7 @@ def chunk_to_metadata(chunk: Chunk) -> Metadata:
         "page": str(chunk.page),
         "position": str(chunk.position),
         "heading": chunk.heading or "",
+        "context": chunk.context,
     }
 
 
@@ -162,4 +163,5 @@ def chunk_from_record(
         position=int(pos_str),
         heading=metadata.get("heading") or None,
         text=text,
+        context=str(metadata.get("context") or ""),
     )
