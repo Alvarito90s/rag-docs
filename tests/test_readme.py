@@ -1,4 +1,4 @@
-"""Pruebas de contenido del README (spec 072, 074).
+"""Pruebas de contenido del README (spec 072, 074, 130).
 
 Ningún test llama a oMLX.
 """
@@ -22,9 +22,9 @@ PENDIENTES = {"docs/demo.gif"}
 
 # ---------- Test 1: copia exacta ----------
 def test_1_exact_copy() -> None:
-    """Los bytes de README.md son iguales a los de tasks/assets/074/README.md."""
+    """Los bytes de README.md son iguales a los de tasks/assets/130/README.md."""
     assert (ROOT / "README.md").read_bytes() == (
-        ROOT / "tasks" / "assets" / "074" / "README.md"
+        ROOT / "tasks" / "assets" / "130" / "README.md"
     ).read_bytes()
 
 
@@ -119,9 +119,9 @@ def test_7_real_api_routes(monkeypatch, tmp_path) -> None:
 
 # ---------- Test 8: copia exacta del inglés ----------
 def test_8_exact_copy_en() -> None:
-    """Los bytes de README.en.md son iguales a los de tasks/assets/074/README.en.md."""
+    """Los bytes de README.en.md son iguales a los de tasks/assets/130/README.en.md."""
     assert (ROOT / "README.en.md").read_bytes() == (
-        ROOT / "tasks" / "assets" / "074" / "README.en.md"
+        ROOT / "tasks" / "assets" / "130" / "README.en.md"
     ).read_bytes()
 
 
@@ -136,9 +136,9 @@ def test_9_english_up_to_date() -> None:
         assert line in README_EN, f"Falta en README_EN: {line}"
 
     # Palabras clave, precisión de citas, falsos rechazos
-    assert "| Keyword accuracy | 1.000 |" in README_EN
-    assert "| Citation precision | 0.971 |" in README_EN
-    assert "| False refusals | 0 |" in README_EN
+    assert "| Keyword accuracy | 0.938 |" in README_EN
+    assert "| Citation precision | 0.968 |" in README_EN
+    assert "| False refusals | 1 |" in README_EN
 
     # Enlaces locales existen (misma regla que test 5)
     links = re.findall(r"\]\(([^)#\s]+)\)", README_EN)

@@ -25,10 +25,11 @@ tarea; si una queda bloqueada, para la cadena.
 ## Stack (no añadas dependencias que la spec no autorice)
 - Python 3.12, gestor uv
 - FastAPI, Jinja2 + HTMX (sin frameworks JS)
-- ChromaDB persistente, rank-bm25, SQLite (stdlib sqlite3)
+- ChromaDB persistente, SQLite (stdlib sqlite3) con FTS5 para BM25
 - PyMuPDF, python-docx, Typer, rich, pydantic-settings
 - Servidor de modelos: oMLX local (API compatible con OpenAI, exige API key)
 - Cliente LLM y embeddings: librería `openai` con base_url configurable
+- Cliente del reranker: `httpx` (la librería `openai` no tiene endpoint de rerank)
 - PROHIBIDO: LangChain, LlamaIndex, Haystack
 
 ## Estructura
@@ -76,3 +77,10 @@ docs/STATE.md      # estado del proyecto, lo mantienes tú
 - Chunk por defecto: 800 caracteres, 120 de solape.
 - Fusión híbrida: RRF con k=60.
 - Citas en el texto como [n]; se resuelven a documento+página en citations.py.
+- Reranker: `Qwen3-Reranker-0.6B-4bit` vía `POST /v1/rerank` de oMLX (puerta H2).
+  Su respuesta real está en tests/fixtures/rerank_response.json: no la modifiques.
+- Rerank activo por defecto con 10 candidatos (puerta H3): Hit@1 híbrido 0.643 → 0.771
+  con +0.23 s por búsqueda. Los tests nunca usan el reranker real (fixture en tests/conftest.py).
+- Contexto de metadatos activo por defecto (puerta H5, spec 113): «Documento «fuente». Primera frase.»,
+  sin LLM. Hit@1 híbrido v2 0.771 → 0.929 e implícitas 0.2 → 1.0, con 0 s de ingesta extra; mejor que el
+  contexto con LLM por chunk (0.900–0.914, unas 40 veces más lento), que queda opcional y apagado.

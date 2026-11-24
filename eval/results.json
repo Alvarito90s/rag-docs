@@ -1,109 +1,196 @@
 {
-  "date": "2026-11-23 15:42",
+  "date": "2026-11-24 12:53",
   "llm_model": "Qwen3.6-35B-A3B-6bit",
   "embedding_model": "Qwen3-Embedding-0.6B-4bit-DWQ",
+  "variants": [
+    "base"
+  ],
   "retrieval": [
     {
       "chunk_size": 500,
       "mode": "hybrid",
       "chunks": 45,
       "questions": 32,
-      "hit_at_1": 0.84375,
+      "hit_at_1": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.9166666666666666,
-      "misses": []
+      "mrr": 1.0,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 1.0,
+          "hit_at_5": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 500,
       "mode": "vector",
       "chunks": 45,
       "questions": 32,
-      "hit_at_1": 0.9375,
+      "hit_at_1": 0.96875,
       "hit_at_5": 1.0,
-      "mrr": 0.9515625,
-      "misses": []
+      "mrr": 0.984375,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 0.96875,
+          "hit_at_5": 1.0,
+          "mrr": 0.984375
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 500,
       "mode": "bm25",
       "chunks": 45,
       "questions": 32,
-      "hit_at_1": 0.84375,
+      "hit_at_1": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.8979166666666667,
-      "misses": []
+      "mrr": 1.0,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 1.0,
+          "hit_at_5": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 800,
       "mode": "hybrid",
       "chunks": 26,
       "questions": 32,
-      "hit_at_1": 0.90625,
+      "hit_at_1": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.953125,
-      "misses": []
+      "mrr": 1.0,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 1.0,
+          "hit_at_5": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 800,
       "mode": "vector",
       "chunks": 26,
       "questions": 32,
-      "hit_at_1": 0.9375,
+      "hit_at_1": 0.96875,
       "hit_at_5": 1.0,
-      "mrr": 0.9583333333333334,
-      "misses": []
+      "mrr": 0.9765625,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 0.96875,
+          "hit_at_5": 1.0,
+          "mrr": 0.9765625
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 800,
       "mode": "bm25",
       "chunks": 26,
       "questions": 32,
-      "hit_at_1": 0.84375,
+      "hit_at_1": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.9088541666666666,
-      "misses": []
+      "mrr": 1.0,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 1.0,
+          "hit_at_5": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 1200,
       "mode": "hybrid",
       "chunks": 23,
       "questions": 32,
-      "hit_at_1": 0.90625,
+      "hit_at_1": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.953125,
-      "misses": []
+      "mrr": 1.0,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 1.0,
+          "hit_at_5": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 1200,
       "mode": "vector",
       "chunks": 23,
       "questions": 32,
-      "hit_at_1": 0.9375,
+      "hit_at_1": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.9583333333333334,
-      "misses": []
+      "mrr": 1.0,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 1.0,
+          "hit_at_5": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "variant": "base"
     },
     {
       "chunk_size": 1200,
       "mode": "bm25",
       "chunks": 23,
       "questions": 32,
-      "hit_at_1": 0.875,
+      "hit_at_1": 1.0,
       "hit_at_5": 1.0,
-      "mrr": 0.9244791666666666,
-      "misses": []
+      "mrr": 1.0,
+      "misses": [],
+      "by_category": {
+        "general": {
+          "questions": 32,
+          "hit_at_1": 1.0,
+          "hit_at_5": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "variant": "base"
     }
   ],
   "generation": {
     "questions": 42,
     "answerable": 32,
     "unanswerable": 10,
-    "keyword_accuracy": 1.0,
-    "citation_precision": 0.9705882352941176,
+    "keyword_accuracy": 0.9375,
+    "citation_precision": 0.967741935483871,
     "refusal_accuracy": 1.0,
-    "false_refusals": 0,
-    "avg_first_token_s": 0.5671213769998887,
-    "avg_total_s": 0.7459864771428242,
+    "false_refusals": 1,
+    "avg_first_token_s": 0.7502583939285614,
+    "avg_total_s": 0.9001216399761915,
+    "judged": 0,
+    "unjudged": 0,
+    "faithfulness": null,
     "results": [
       {
         "id": "q01",
@@ -113,8 +200,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5358854170008271,
-        "total_s": 0.6444302500003687
+        "first_token_s": 0.8359354169999733,
+        "total_s": 0.9382887089998349,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q02",
@@ -124,8 +213,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5962512500009325,
-        "total_s": 0.7672182500009512
+        "first_token_s": 0.8404968340000778,
+        "total_s": 1.0075947090001591,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q03",
@@ -135,19 +226,23 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6256729579999956,
-        "total_s": 0.7961307500008843
+        "first_token_s": 0.77430041599996,
+        "total_s": 0.9279741660000127,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q04",
         "answerable": true,
-        "answer": "El precio total asciende a 4.800 euros anuales, pagaderos por trimestres vencidos [1]. Cada factura debe abonarse en un plazo máximo de quince días naturales desde su emisión [1]. El cliente dispone de un canal de facturación digital [1].",
+        "answer": "El precio total asciende a 4.800 euros anuales, pagaderos por trimestres vencidos [1]. Cada factura debe abonarse en un plazo máximo de quince días naturales desde su emisión [1].",
         "no_answer": false,
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6095531669998309,
-        "total_s": 1.087817792000351
+        "first_token_s": 0.8128821669999979,
+        "total_s": 1.152770916999998,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q05",
@@ -157,19 +252,23 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6647448750009062,
-        "total_s": 0.8710892500002956
+        "first_token_s": 0.7998394590001681,
+        "total_s": 0.9809917090001363,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q06",
         "answerable": true,
-        "answer": "El proveedor ofrece una garantía de dos años sobre todos los desarrollos entregados, la cual cubre correcciones de errores y modificaciones necesarias para el correcto funcionamiento de los sistemas informáticos [1].",
+        "answer": "El proveedor ofrece una garantía de dos años sobre todos los desarrollos entregados, durante la cual se cubrirán las correcciones de errores y las modificaciones necesarias para el correcto funcionamiento de los sistemas informáticos [1].",
         "no_answer": false,
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6744646249990183,
-        "total_s": 1.0259930829997757
+        "first_token_s": 0.7902714169999854,
+        "total_s": 1.1264561250000042,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q07",
@@ -179,41 +278,49 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6899977499997476,
-        "total_s": 0.8685067919996072
+        "first_token_s": 0.793410374999894,
+        "total_s": 0.9512239169998793,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q08",
         "answerable": true,
-        "answer": "La confidencialidad dura durante toda la vigencia del contrato y cinco años adicionales tras su finalización [2].",
+        "answer": "La confidencialidad dura durante toda la vigencia del contrato y cinco años adicionales tras su finalización [1].",
         "no_answer": false,
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6416766250004002,
-        "total_s": 0.8421784589991148
+        "first_token_s": 0.8145324169997821,
+        "total_s": 0.9928598749997946,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q09",
         "answerable": true,
-        "answer": "Al finalizar el contrato, el proveedor entregará todos los códigos fuente y documentación [2].",
+        "answer": "El proveedor entregará la cafetera principal, el filtro permanente de acero inoxidable, el dosificador de café y un paño de limpieza especial [5].",
         "no_answer": false,
-        "keywords_ok": true,
-        "citations_correct": 1,
+        "keywords_ok": false,
+        "citations_correct": 0,
         "citations_total": 1,
-        "first_token_s": 0.5776493329994992,
-        "total_s": 0.7456429159992695
+        "first_token_s": 0.7088240000000496,
+        "total_s": 0.9628545000000486,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q10",
         "answerable": true,
-        "answer": "La capacidad del depósito de agua de la Brevia X2 es de 1,8 litros [2].",
+        "answer": "La capacidad del depósito de agua es de 1,8 litros [1].",
         "no_answer": false,
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5873794170001929,
-        "total_s": 0.7864342920001945
+        "first_token_s": 0.7795149169999149,
+        "total_s": 0.9106977500000539,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q11",
@@ -223,8 +330,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.533790957999372,
-        "total_s": 0.7019477079993521
+        "first_token_s": 0.7507519169998886,
+        "total_s": 0.9081109169999309,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q12",
@@ -234,8 +343,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5436497500013502,
-        "total_s": 0.7207446670017816
+        "first_token_s": 0.7838400420000653,
+        "total_s": 0.9548265840001022,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q13",
@@ -245,8 +356,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5919654169993009,
-        "total_s": 0.759206875000018
+        "first_token_s": 0.6656922919999033,
+        "total_s": 0.8261180419999619,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q14",
@@ -256,8 +369,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5882554579984571,
-        "total_s": 0.7477359999993496
+        "first_token_s": 0.7464305419998709,
+        "total_s": 0.8859243750000587,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q15",
@@ -267,8 +382,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.563321707999421,
-        "total_s": 0.7875548329993762
+        "first_token_s": 0.8036197500000526,
+        "total_s": 1.0099048340000536,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q16",
@@ -278,19 +395,23 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5308192079992295,
-        "total_s": 0.6509264999986044
+        "first_token_s": 0.8182196249999834,
+        "total_s": 0.9316002919999846,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q17",
         "answerable": true,
-        "answer": "El tiempo de soporte gratuito depende del producto o servicio:\n\n*   Para la cafetera Brevia X2, el soporte técnico es gratuito durante los primeros **doce meses** completos tras la compra [1].\n*   Para los desarrollos de software, el proveedor ofrece una garantía (que cubre correcciones y modificaciones) de **dos años** [2].",
-        "no_answer": false,
-        "keywords_ok": true,
-        "citations_correct": 1,
-        "citations_total": 2,
-        "first_token_s": 0.6090256670013332,
-        "total_s": 1.235170667001512
+        "answer": "No lo sé con la información de los documentos.",
+        "no_answer": true,
+        "keywords_ok": false,
+        "citations_correct": 0,
+        "citations_total": 0,
+        "first_token_s": 0.793053165999936,
+        "total_s": 0.8817116660000011,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q18",
@@ -300,8 +421,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5467056249999587,
-        "total_s": 0.7153705000000627
+        "first_token_s": 0.7988237920001211,
+        "total_s": 0.9542378749999898,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q19",
@@ -311,8 +434,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6334125840003253,
-        "total_s": 0.7443875419994583
+        "first_token_s": 0.7845464580000225,
+        "total_s": 0.8856876669999565,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q20",
@@ -322,8 +447,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6682358750003914,
-        "total_s": 0.8623888330002956
+        "first_token_s": 0.7850522920000458,
+        "total_s": 0.967075874999864,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q21",
@@ -333,8 +460,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5183133339996857,
-        "total_s": 0.7118574590003846
+        "first_token_s": 0.701777292000088,
+        "total_s": 0.8833682500001032,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q22",
@@ -344,8 +473,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.43730183399929956,
-        "total_s": 0.6417995840001822
+        "first_token_s": 0.6037183749999713,
+        "total_s": 0.7868126250000387,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q23",
@@ -355,19 +486,23 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5941776250001567,
-        "total_s": 0.7649414580009761
+        "first_token_s": 0.7175964580001164,
+        "total_s": 0.8708208330001526,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q24",
         "answerable": true,
-        "answer": "Las solicitudes de vacaciones deben enviarse con al menos 15 días de antelación [1]. Específicamente, se requiere una antelación mínima de quince días naturales por escrito [2].",
+        "answer": "Las solicitudes de vacaciones deben enviarse con al menos 15 días de antelación al responsable directo del equipo de trabajo asignado [1].",
         "no_answer": false,
         "keywords_ok": true,
-        "citations_correct": 2,
-        "citations_total": 2,
-        "first_token_s": 0.5193605830008892,
-        "total_s": 0.8564272080002411
+        "citations_correct": 1,
+        "citations_total": 1,
+        "first_token_s": 0.7810220839999147,
+        "total_s": 1.009290209000028,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q25",
@@ -377,8 +512,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5533138329992653,
-        "total_s": 0.7286986660001276
+        "first_token_s": 0.7617201250000107,
+        "total_s": 0.9242992909998975,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q26",
@@ -388,8 +525,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.47276583399980154,
-        "total_s": 0.6166797499990935
+        "first_token_s": 0.6178876670001046,
+        "total_s": 0.7561176250001154,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q27",
@@ -399,8 +538,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5204960419996496,
-        "total_s": 0.6163141670003824
+        "first_token_s": 0.6075622079999903,
+        "total_s": 0.6895994999999857,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q28",
@@ -410,8 +551,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5635001669998019,
-        "total_s": 0.775941125000827
+        "first_token_s": 0.7355670409999675,
+        "total_s": 0.9374222080000436,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q29",
@@ -421,8 +564,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5397648329999356,
-        "total_s": 0.7387372499997582
+        "first_token_s": 0.5847636670000611,
+        "total_s": 0.7602327920001244,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q30",
@@ -432,8 +577,10 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.5681801249993441,
-        "total_s": 0.7302060829988477
+        "first_token_s": 0.7209470000000238,
+        "total_s": 0.871605708000061,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q31",
@@ -443,19 +590,23 @@
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.6156275829998776,
-        "total_s": 0.7959114580007736
+        "first_token_s": 0.8045274999999492,
+        "total_s": 0.9729339170000912,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "q32",
         "answerable": true,
-        "answer": "SSH usa el protocolo de transporte TCP [1].",
+        "answer": "SSH usa TCP [1].",
         "no_answer": false,
         "keywords_ok": true,
         "citations_correct": 1,
         "citations_total": 1,
-        "first_token_s": 0.4222253340012685,
-        "total_s": 0.5192746669999906
+        "first_token_s": 0.5867757500000153,
+        "total_s": 0.6501854169998751,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u01",
@@ -465,8 +616,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5319735829998535,
-        "total_s": 0.6255718749998778
+        "first_token_s": 0.7893638749999354,
+        "total_s": 0.8762683340000876,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u02",
@@ -476,8 +629,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5697074999989127,
-        "total_s": 0.6690208330001042
+        "first_token_s": 0.7244002499999169,
+        "total_s": 0.8133381659999941,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u03",
@@ -487,8 +642,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5337152079991938,
-        "total_s": 0.6333495409999159
+        "first_token_s": 0.8624509169999328,
+        "total_s": 0.955353624999816,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u04",
@@ -498,8 +655,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5786186659988743,
-        "total_s": 0.6720896659990103
+        "first_token_s": 0.7963320829999248,
+        "total_s": 0.8947539999999208,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u05",
@@ -509,8 +668,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5387465829990106,
-        "total_s": 0.6344067909994919
+        "first_token_s": 0.7245999169999777,
+        "total_s": 0.8148307090000344,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u06",
@@ -520,8 +681,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5557863750000251,
-        "total_s": 0.6509739169996465
+        "first_token_s": 0.6089759579999736,
+        "total_s": 0.7112356249999721,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u07",
@@ -531,8 +694,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5296885829993698,
-        "total_s": 0.6324847079995379
+        "first_token_s": 0.7420326670001032,
+        "total_s": 0.8316314579999471,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u08",
@@ -542,8 +707,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5800466670007154,
-        "total_s": 0.6898679999994783
+        "first_token_s": 0.722021457999972,
+        "total_s": 0.8172473749998517,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u09",
@@ -553,8 +720,10 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.5639272919997893,
-        "total_s": 0.6634329579992482
+        "first_token_s": 0.8636308749998989,
+        "total_s": 0.9559236669999791,
+        "faithful": null,
+        "unsupported": []
       },
       {
         "id": "u10",
@@ -564,8 +733,584 @@
         "keywords_ok": null,
         "citations_correct": 0,
         "citations_total": 0,
-        "first_token_s": 0.4994025830001192,
-        "total_s": 0.6025689170000987
+        "first_token_s": 0.7731420830000388,
+        "total_s": 0.8649270410001009,
+        "faithful": null,
+        "unsupported": []
+      }
+    ],
+    "keywords_by_category": {
+      "general": 0.9375
+    },
+    "variant": "base"
+  },
+  "generations": {
+    "base": [
+      {
+        "questions": 42,
+        "answerable": 32,
+        "unanswerable": 10,
+        "keyword_accuracy": 0.9375,
+        "citation_precision": 0.967741935483871,
+        "refusal_accuracy": 1.0,
+        "false_refusals": 1,
+        "avg_first_token_s": 0.7502583939285614,
+        "avg_total_s": 0.9001216399761915,
+        "judged": 0,
+        "unjudged": 0,
+        "faithfulness": null,
+        "results": [
+          {
+            "id": "q01",
+            "answerable": true,
+            "answer": "El contrato de servicios se firmó en Valladolid [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.8359354169999733,
+            "total_s": 0.9382887089998349,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q02",
+            "answerable": true,
+            "answer": "El contrato se firmó el 3 de marzo de 2025 [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.8404968340000778,
+            "total_s": 1.0075947090001591,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q03",
+            "answerable": true,
+            "answer": "El precio total del servicio asciende a 4.800 euros anuales [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.77430041599996,
+            "total_s": 0.9279741660000127,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q04",
+            "answerable": true,
+            "answer": "El precio total asciende a 4.800 euros anuales, pagaderos por trimestres vencidos [1]. Cada factura debe abonarse en un plazo máximo de quince días naturales desde su emisión [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.8128821669999979,
+            "total_s": 1.152770916999998,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q05",
+            "answerable": true,
+            "answer": "Cada factura debe ser abonada en un plazo máximo de quince días naturales desde su emisión [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7998394590001681,
+            "total_s": 0.9809917090001363,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q06",
+            "answerable": true,
+            "answer": "El proveedor ofrece una garantía de dos años sobre todos los desarrollos entregados, durante la cual se cubrirán las correcciones de errores y las modificaciones necesarias para el correcto funcionamiento de los sistemas informáticos [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7902714169999854,
+            "total_s": 1.1264561250000042,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q07",
+            "answerable": true,
+            "answer": "Se puede resolver el contrato con un preaviso de 30 días naturales [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.793410374999894,
+            "total_s": 0.9512239169998793,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q08",
+            "answerable": true,
+            "answer": "La confidencialidad dura durante toda la vigencia del contrato y cinco años adicionales tras su finalización [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.8145324169997821,
+            "total_s": 0.9928598749997946,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q09",
+            "answerable": true,
+            "answer": "El proveedor entregará la cafetera principal, el filtro permanente de acero inoxidable, el dosificador de café y un paño de limpieza especial [5].",
+            "no_answer": false,
+            "keywords_ok": false,
+            "citations_correct": 0,
+            "citations_total": 1,
+            "first_token_s": 0.7088240000000496,
+            "total_s": 0.9628545000000486,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q10",
+            "answerable": true,
+            "answer": "La capacidad del depósito de agua es de 1,8 litros [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7795149169999149,
+            "total_s": 0.9106977500000539,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q11",
+            "answerable": true,
+            "answer": "Se pueden preparar aproximadamente doce tazas estándar sin necesidad de rellenar el depósito [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7507519169998886,
+            "total_s": 0.9081109169999309,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q12",
+            "answerable": true,
+            "answer": "Se recomienda descalcificar la cafetera cada 200 ciclos de preparación [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7838400420000653,
+            "total_s": 0.9548265840001022,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q13",
+            "answerable": true,
+            "answer": "El código de error E-17 indica que el depósito de agua está vacío [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.6656922919999033,
+            "total_s": 0.8261180419999619,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q14",
+            "answerable": true,
+            "answer": "El código E-24 indica que el posavasos está lleno [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7464305419998709,
+            "total_s": 0.8859243750000587,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q15",
+            "answerable": true,
+            "answer": "El código de error E-05 señala problemas con la bomba de presión interna del equipo de preparación del café [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.8036197500000526,
+            "total_s": 1.0099048340000536,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q16",
+            "answerable": true,
+            "answer": "La cafetera tiene una garantía de tres años [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.8182196249999834,
+            "total_s": 0.9316002919999846,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q17",
+            "answerable": true,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": false,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.793053165999936,
+            "total_s": 0.8817116660000011,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q18",
+            "answerable": true,
+            "answer": "No se deben usar productos abrasivos, disolventes fuertes ni lejía [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7988237920001211,
+            "total_s": 0.9542378749999898,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q19",
+            "answerable": true,
+            "answer": "La limpieza profunda se debe realizar cada semana [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7845464580000225,
+            "total_s": 0.8856876669999565,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q20",
+            "answerable": true,
+            "answer": "La cafetera prepara una taza de café en apenas un minuto desde el momento del encendido [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7850522920000458,
+            "total_s": 0.967075874999864,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q21",
+            "answerable": true,
+            "answer": "Hybrid retrieval improved Hit@5 from 0.71 to 0.84 [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.701777292000088,
+            "total_s": 0.8833682500001032,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q22",
+            "answerable": true,
+            "answer": "The authors used a chunk size of 512 tokens with an overlap of 64 tokens [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.6037183749999713,
+            "total_s": 0.7868126250000387,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q23",
+            "answerable": true,
+            "answer": "Cada empleado dispone de 23 días laborables de vacaciones al año [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7175964580001164,
+            "total_s": 0.8708208330001526,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q24",
+            "answerable": true,
+            "answer": "Las solicitudes de vacaciones deben enviarse con al menos 15 días de antelación al responsable directo del equipo de trabajo asignado [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7810220839999147,
+            "total_s": 1.009290209000028,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q25",
+            "answerable": true,
+            "answer": "Con más de 10 años de antigüedad corresponden 4 días adicionales [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7617201250000107,
+            "total_s": 0.9242992909998975,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q26",
+            "answerable": true,
+            "answer": "DNS usa el puerto 53 con el protocolo de transporte UDP [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.6178876670001046,
+            "total_s": 0.7561176250001154,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q27",
+            "answerable": true,
+            "answer": "El modelo OSI tiene siete capas [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.6075622079999903,
+            "total_s": 0.6895994999999857,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q28",
+            "answerable": true,
+            "answer": "SKU-4471-B es la referencia interna del filtro de agua de la Brevia X2 [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7355670409999675,
+            "total_s": 0.9374222080000436,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q29",
+            "answerable": true,
+            "answer": "SLA-Oro es un acuerdo de nivel de servicio con respuesta en menos de 4 horas [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.5847636670000611,
+            "total_s": 0.7602327920001244,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q30",
+            "answerable": true,
+            "answer": "La responsable de la migración del servidor de pruebas es Marta Ibáñez [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.7209470000000238,
+            "total_s": 0.871605708000061,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q31",
+            "answerable": true,
+            "answer": "Se migrará a la versión 3.2 antes del 30 de junio [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.8045274999999492,
+            "total_s": 0.9729339170000912,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "q32",
+            "answerable": true,
+            "answer": "SSH usa TCP [1].",
+            "no_answer": false,
+            "keywords_ok": true,
+            "citations_correct": 1,
+            "citations_total": 1,
+            "first_token_s": 0.5867757500000153,
+            "total_s": 0.6501854169998751,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u01",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.7893638749999354,
+            "total_s": 0.8762683340000876,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u02",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.7244002499999169,
+            "total_s": 0.8133381659999941,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u03",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.8624509169999328,
+            "total_s": 0.955353624999816,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u04",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.7963320829999248,
+            "total_s": 0.8947539999999208,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u05",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.7245999169999777,
+            "total_s": 0.8148307090000344,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u06",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.6089759579999736,
+            "total_s": 0.7112356249999721,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u07",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.7420326670001032,
+            "total_s": 0.8316314579999471,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u08",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.722021457999972,
+            "total_s": 0.8172473749998517,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u09",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.8636308749998989,
+            "total_s": 0.9559236669999791,
+            "faithful": null,
+            "unsupported": []
+          },
+          {
+            "id": "u10",
+            "answerable": false,
+            "answer": "No lo sé con la información de los documentos.",
+            "no_answer": true,
+            "keywords_ok": null,
+            "citations_correct": 0,
+            "citations_total": 0,
+            "first_token_s": 0.7731420830000388,
+            "total_s": 0.8649270410001009,
+            "faithful": null,
+            "unsupported": []
+          }
+        ],
+        "keywords_by_category": {
+          "general": 0.9375
+        },
+        "variant": "base"
       }
     ]
   }
